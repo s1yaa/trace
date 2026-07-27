@@ -1,0 +1,268 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
+@import "tailwindcss";
+
+/* ============================================================
+   TRACE — Design System
+   Dark Digital Forensics / Mission Control Aesthetic
+   ============================================================ */
+
+:root {
+  /* Backgrounds */
+  --bg-void: #04070A;
+  --bg-base: #080C10;
+  --bg-panel: #0D1117;
+  --bg-panel-elevated: #111827;
+  --bg-panel-hover: #161F2E;
+  --bg-glass: rgba(13, 17, 23, 0.85);
+
+  /* Borders */
+  --border-subtle: rgba(99, 179, 237, 0.08);
+  --border-default: rgba(99, 179, 237, 0.14);
+  --border-accent: rgba(99, 179, 237, 0.35);
+  --border-muted: rgba(255, 255, 255, 0.06);
+
+  /* Accent / Cyan System */
+  --accent-primary: #63B3ED;
+  --accent-secondary: #4299E1;
+  --accent-dim: rgba(99, 179, 237, 0.15);
+  --accent-glow: rgba(99, 179, 237, 0.08);
+
+  /* Status Colors */
+  --status-active: #48BB78;
+  --status-active-dim: rgba(72, 187, 120, 0.15);
+  --status-warning: #ECC94B;
+  --status-warning-dim: rgba(236, 201, 75, 0.15);
+  --status-critical: #FC8181;
+  --status-critical-dim: rgba(252, 129, 129, 0.12);
+
+  /* Typography */
+  --text-primary: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-ghost: rgba(148, 163, 184, 0.4);
+  --text-accent: #63B3ED;
+
+  /* Spacing */
+  --sidebar-width: 280px;
+  --sidebar-collapsed: 60px;
+  --commandbar-height: 56px;
+  --timeline-height: 140px;
+
+  /* Transitions */
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Base Reset & Body
+   ──────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--bg-void);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+  height: 100dvh;
+  width: 100vw;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Scrollbars
+   ──────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Typography Utilities
+   ──────────────────────────────────────────────────────────── */
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.text-trace-accent { color: var(--text-accent); }
+.text-trace-muted  { color: var(--text-muted); }
+.text-trace-ghost  { color: var(--text-ghost); }
+.text-trace-primary { color: var(--text-primary); }
+.text-trace-secondary { color: var(--text-secondary); }
+
+/* ────────────────────────────────────────────────────────────
+   Panel / Glass Utilities
+   ──────────────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+}
+
+.panel-elevated {
+  background: var(--bg-panel-elevated);
+  border: 1px solid var(--border-default);
+}
+
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid var(--border-default);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Status Pill Utilities
+   ──────────────────────────────────────────────────────────── */
+
+.status-active {
+  color: var(--status-active);
+  background: var(--status-active-dim);
+  border: 1px solid rgba(72, 187, 120, 0.25);
+}
+
+.status-warning {
+  color: var(--status-warning);
+  background: var(--status-warning-dim);
+  border: 1px solid rgba(236, 201, 75, 0.25);
+}
+
+.status-critical {
+  color: var(--status-critical);
+  background: var(--status-critical-dim);
+  border: 1px solid rgba(252, 129, 129, 0.25);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Animations
+   ──────────────────────────────────────────────────────────── */
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.8); }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes scan-line {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes grid-fade {
+  0%, 100% { opacity: 0.03; }
+  50%       { opacity: 0.06; }
+}
+
+@keyframes float-particle {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-80vh) translateX(30px); opacity: 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.7; }
+}
+
+@keyframes flicker {
+  0%, 100%  { opacity: 1; }
+  92%        { opacity: 1; }
+  93%        { opacity: 0.85; }
+  94%        { opacity: 1; }
+  96%        { opacity: 0.9; }
+  97%        { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes draw-ring {
+  from { stroke-dashoffset: 251; }
+  to   { stroke-dashoffset: var(--ring-offset); }
+}
+
+@keyframes data-stream {
+  0%   { opacity: 0; transform: translateX(-8px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mapping-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.8; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Global Classes
+   ──────────────────────────────────────────────────────────── */
+
+.pulsing-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.glow-text {
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--text-muted) 0%,
+    var(--accent-primary) 50%,
+    var(--text-muted) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Thin dividers */
+.divider {
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* Accent line */
+.accent-line-left {
+  border-left: 2px solid var(--accent-primary);
+  padding-left: 10px;
+}
