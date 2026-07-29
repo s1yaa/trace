@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TRACE — Digital Investigation Platform
+
+TRACE is an AI-powered evidence correlation and investigation platform. It lets you explore fictional cases made up of scattered evidence — people, documents, emails, locations, and events — and trace the hidden connections between them.
+
+**"Follow the evidence. Uncover the connections."**
+
+## Features
+
+- **Investigation Graph** — interactive node-based graph of entities and relationships (drag, zoom, filter, search)
+- **Entity Inspector** — detailed view of any selected entity, with confidence scores and AI-generated hypotheses
+- **Timeline** — chronological view of case events, with anomaly detection for contradictions
+- **Evidence View** — browse documents, emails, and images, each broken into extracted entities
+- **Trace** — the signature feature: select a lead and watch the app trace a chain of connections across the graph
+- **AI Analysis** — case summaries, pattern detection, and a simple Q&A interface
+- **Anomaly Center** — a dedicated view of timeline, identity, and relationship inconsistencies
+- **Case Creator** — build new investigation cases without hand-writing data files
+
+## Tech Stack
+
+- Next.js + TypeScript
+- Tailwind CSS
+- Framer Motion
+- React Flow (graph visualization)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+No API keys required — the app runs entirely on structured mock case data.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Status
 
-## Learn More
+Built incrementally in phases:
 
-To learn more about Next.js, take a look at the following resources:
+- [x] Phase 1 — App shell & onboarding
+- [x] Phase 2 — Investigation graph
+- [x] Phase 3 — Entity inspector
+- [ ] Phase 4 — Timeline
+- [ ] Phase 5 — Evidence view
+- [ ] Phase 6 — Trace feature
+- [ ] Phase 7 — AI analysis
+- [ ] Phase 8 — Anomaly center & multi-case support
+- [ ] Phase 9 — Case creator
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Data Model
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Cases, evidence, entities, relationships, timeline events, and anomalies are all defined as typed objects in `/data`, making it easy to add new investigation cases.
