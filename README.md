@@ -1,4 +1,4 @@
-# TRACE — Digital Investigation Platform
+# TRACE
 
 TRACE is an AI-powered evidence correlation and investigation platform. It lets you explore fictional cases made up of scattered evidence — people, documents, emails, locations, and events — and trace the hidden connections between them.
 
