@@ -7,10 +7,6 @@ interface OnboardingScreenProps {
   onEnter: () => void;
 }
 
-// ────────────────────────────────────────────────────────────
-// Particle System
-// ────────────────────────────────────────────────────────────
-
 interface Particle {
   x: number;
   y: number;
@@ -148,10 +144,6 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>,
     };
   }, [active, canvasRef, spawnParticle]);
 }
-
-// ────────────────────────────────────────────────────────────
-// Onboarding Screen Component
-// ────────────────────────────────────────────────────────────
 
 const LETTERS = 'TRACE'.split('');
 

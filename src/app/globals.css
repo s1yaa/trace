@@ -266,3 +266,73 @@ body {
   border-left: 2px solid var(--accent-primary);
   padding-left: 10px;
 }
+
+/* ────────────────────────────────────────────────────────────
+   Phase 2 — Graph Node Animations
+   ──────────────────────────────────────────────────────────── */
+
+@keyframes node-pulse {
+  0%, 100% { opacity: 0.12; transform: scale(1); }
+  50%       { opacity: 0.3;  transform: scale(1.04); }
+}
+
+/* ────────────────────────────────────────────────────────────
+   React Flow Overrides — TRACE Dark Theme
+   ──────────────────────────────────────────────────────────── */
+
+/* Remove the white React Flow background and default styles */
+.react-flow__renderer {
+  background: transparent !important;
+}
+
+.react-flow__pane {
+  cursor: default;
+}
+
+.react-flow__node {
+  /* Remove default React Flow node styling — our custom nodes handle it */
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  width: auto !important;
+}
+
+/* Selection box */
+.react-flow__selection {
+  background: rgba(99, 179, 237, 0.05) !important;
+  border: 1px solid rgba(99, 179, 237, 0.3) !important;
+}
+
+/* Minimap (not used but style for safety) */
+.react-flow__minimap {
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--border-subtle) !important;
+}
+
+/* Suppress React Flow attribution */
+.react-flow__attribution {
+  display: none !important;
+}
+
+/* Edge path hover area */
+.react-flow__edge-path {
+  cursor: default;
+}
+
+/* Handle styling */
+.react-flow__handle {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: rgba(99, 179, 237, 0.3) !important;
+  border: 1px solid rgba(99, 179, 237, 0.5) !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.react-flow__node:hover .react-flow__handle {
+  opacity: 0 !important;
+}
+

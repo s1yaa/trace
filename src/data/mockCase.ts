@@ -1,9 +1,3 @@
-// ============================================================
-// TRACE — Mock Case Data
-// CASE-047: "The Missing Research Data"
-// Phase 1: hardcoded. Phase 2+ will load from backend.
-// ============================================================
-
 import type {
   Case,
   Evidence,
@@ -15,10 +9,6 @@ import type {
   EvidenceTrail,
   CaseSummary,
 } from '@/types';
-
-// ────────────────────────────────────────────────────────────
-// Evidence Records
-// ────────────────────────────────────────────────────────────
 
 const EVIDENCE: Evidence[] = [
   {
@@ -103,10 +93,6 @@ const EVIDENCE: Evidence[] = [
   },
   // ... remaining 19 evidence items abbreviated in mock (counts are the source of truth)
 ];
-
-// ────────────────────────────────────────────────────────────
-// Entity Records
-// ────────────────────────────────────────────────────────────
 
 const ENTITIES: Entity[] = [
   {
@@ -240,10 +226,6 @@ const ENTITIES: Entity[] = [
   // ... remaining 9 entities abbreviated (counts are source of truth)
 ];
 
-// ────────────────────────────────────────────────────────────
-// Relationships
-// ────────────────────────────────────────────────────────────
-
 const RELATIONSHIPS: Relationship[] = [
   {
     id: 'REL-001',
@@ -325,10 +307,6 @@ const RELATIONSHIPS: Relationship[] = [
   },
 ];
 
-// ────────────────────────────────────────────────────────────
-// Timeline Events
-// ────────────────────────────────────────────────────────────
-
 const TIMELINE_EVENTS: TimelineEvent[] = [
   {
     id: 'TML-001',
@@ -392,10 +370,6 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
   },
 ];
 
-// ────────────────────────────────────────────────────────────
-// Anomalies
-// ────────────────────────────────────────────────────────────
-
 const ANOMALIES: Anomaly[] = [
   {
     id: 'ANO-001',
@@ -438,10 +412,6 @@ const ANOMALIES: Anomaly[] = [
   },
 ];
 
-// ────────────────────────────────────────────────────────────
-// AI Insights (stubs for Phase 3)
-// ────────────────────────────────────────────────────────────
-
 const AI_INSIGHTS: AIInsight[] = [
   {
     id: 'INS-001',
@@ -458,10 +428,6 @@ const AI_INSIGHTS: AIInsight[] = [
     accepted: undefined,
   },
 ];
-
-// ────────────────────────────────────────────────────────────
-// Evidence Trails
-// ────────────────────────────────────────────────────────────
 
 const EVIDENCE_TRAILS: EvidenceTrail[] = [
   {
@@ -487,10 +453,6 @@ const EVIDENCE_TRAILS: EvidenceTrail[] = [
   },
 ];
 
-// ────────────────────────────────────────────────────────────
-// The Master Case Object
-// ────────────────────────────────────────────────────────────
-
 export const MOCK_CASE: Case = {
   id: 'CASE-047',
   name: 'The Missing Research Data',
@@ -509,10 +471,6 @@ export const MOCK_CASE: Case = {
   aiInsights: AI_INSIGHTS,
   evidenceTrails: EVIDENCE_TRAILS,
 };
-
-// ────────────────────────────────────────────────────────────
-// Derived Summary (used by CommandBar and Sidebar)
-// ────────────────────────────────────────────────────────────
 
 export const CASE_SUMMARY: CaseSummary = {
   id: MOCK_CASE.id,

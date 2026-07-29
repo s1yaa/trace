@@ -24,10 +24,6 @@ import ConfidenceMeter from '@/components/ui/ConfidenceMeter';
 import type { CaseSummary } from '@/types';
 import type { EvidenceType, EntityType } from '@/types';
 
-// ────────────────────────────────────────────────────────────
-// Types
-// ────────────────────────────────────────────────────────────
-
 interface NavItem {
   id: string;
   label: string;
@@ -42,49 +38,41 @@ interface SidebarProps {
   onNavChange: (id: string) => void;
 }
 
-// ────────────────────────────────────────────────────────────
-// Nav Config
-// ────────────────────────────────────────────────────────────
-
 const NAV_ITEMS: NavItem[] = [
-  { id: 'graph',     label: 'Investigation Graph', icon: Network,       route: '/graph' },
-  { id: 'trails',    label: 'Evidence Trails',      icon: GitBranch,    route: '/trails', badge: 2 },
-  { id: 'timeline',  label: 'Timeline',             icon: Clock,        route: '/timeline' },
-  { id: 'evidence',  label: 'Evidence',             icon: FileText,     route: '/evidence', badge: 24 },
-  { id: 'ai',        label: 'AI Analysis',          icon: Cpu,          route: '/ai', badge: 1 },
-  { id: 'anomalies', label: 'Anomalies',            icon: AlertTriangle, route: '/anomalies', badge: 3 },
+  { id: 'graph', label: 'Investigation Graph', icon: Network, route: '/graph' },
+  { id: 'trails', label: 'Evidence Trails', icon: GitBranch, route: '/trails', badge: 2 },
+  { id: 'timeline', label: 'Timeline', icon: Clock, route: '/timeline' },
+  { id: 'evidence', label: 'Evidence', icon: FileText, route: '/evidence', badge: 24 },
+  { id: 'ai', label: 'AI Analysis', icon: Cpu, route: '/ai', badge: 1 },
+  { id: 'anomalies', label: 'Anomalies', icon: AlertTriangle, route: '/anomalies', badge: 3 },
 ];
 
-// ────────────────────────────────────────────────────────────
-// Evidence Icon Map
-// ────────────────────────────────────────────────────────────
-
 const EVIDENCE_ICONS: Record<EvidenceType, React.ComponentType<{ size?: number; color?: string }>> = {
-  EMAIL:       Mail,
+  EMAIL: Mail,
   NETWORK_LOG: Wifi,
-  DOCUMENT:    FileText,
-  CODE:        Code,
-  FINANCIAL:   DollarSign,
-  DATABASE:    Database,
-  IMAGE:       FolderOpen,
-  VIDEO:       FolderOpen,
-  AUDIO:       FolderOpen,
+  DOCUMENT: FileText,
+  CODE: Code,
+  FINANCIAL: DollarSign,
+  DATABASE: Database,
+  IMAGE: FolderOpen,
+  VIDEO: FolderOpen,
+  AUDIO: FolderOpen,
 };
 
 const ENTITY_ICONS: Record<EntityType, React.ComponentType<{ size?: number; color?: string }>> = {
-  PERSON:       User,
-  DEVICE:       Monitor,
-  ACCOUNT:      FolderOpen,
+  PERSON: User,
+  DEVICE: Monitor,
+  ACCOUNT: FolderOpen,
   ORGANIZATION: Globe,
-  IP_ADDRESS:   Globe,
-  LOCATION:     Globe,
-  FILE:         FileText,
-  URL:          Globe,
+  IP_ADDRESS: Globe,
+  LOCATION: Globe,
+  FILE: FileText,
+  URL: Globe,
+  DOCUMENT: FileText,
+  IMAGE: FolderOpen,
+  EMAIL: FolderOpen,
+  EVENT: FolderOpen,
 };
-
-// ────────────────────────────────────────────────────────────
-// Sidebar Component
-// ────────────────────────────────────────────────────────────
 
 export default function Sidebar({ caseSummary, activeNav, onNavChange }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);

@@ -5,10 +5,6 @@ import { motion } from 'framer-motion';
 import { Network, Cpu } from 'lucide-react';
 import type { GraphPlaceholderProps } from '@/types';
 
-// ────────────────────────────────────────────────────────────
-// Animated mapping canvas — idle state
-// ────────────────────────────────────────────────────────────
-
 interface MappingNode {
   x: number;
   y: number;
@@ -135,9 +131,9 @@ function useMappingCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
         const pulse = 0.5 + 0.5 * Math.sin(node.pulsePhase);
 
         const colorMap = {
-          primary:   { core: '#63B3ED', ring: 'rgba(99, 179, 237, 0.3)' },
+          primary: { core: '#63B3ED', ring: 'rgba(99, 179, 237, 0.3)' },
           secondary: { core: '#4299E1', ring: 'rgba(66, 153, 225, 0.2)' },
-          tertiary:  { core: '#2B6CB0', ring: 'rgba(43, 108, 176, 0.15)' },
+          tertiary: { core: '#2B6CB0', ring: 'rgba(43, 108, 176, 0.15)' },
         };
         const colors = colorMap[node.type];
 
@@ -176,10 +172,6 @@ function useMappingCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
     };
   }, [canvasRef]);
 }
-
-// ────────────────────────────────────────────────────────────
-// Component
-// ────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function GraphPlaceholder({ caseId, entities, relationships, onEntitySelect }: GraphPlaceholderProps) {

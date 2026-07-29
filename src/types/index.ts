@@ -1,20 +1,11 @@
-// ============================================================
-// TRACE — Core TypeScript Data Model
-// All interfaces defined in Phase 1 for clean extension later
-// ============================================================
-
 export type CaseStatus = 'ACTIVE' | 'CLOSED' | 'ARCHIVED' | 'PENDING';
 export type EvidenceType = 'DOCUMENT' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'NETWORK_LOG' | 'EMAIL' | 'CODE' | 'DATABASE' | 'FINANCIAL';
-export type EntityType = 'PERSON' | 'ORGANIZATION' | 'LOCATION' | 'DEVICE' | 'ACCOUNT' | 'FILE' | 'URL' | 'IP_ADDRESS';
-export type RelationshipType = 'COMMUNICATES_WITH' | 'WORKS_AT' | 'LOCATED_AT' | 'OWNS' | 'ACCESSED' | 'TRANSFERRED_TO' | 'ASSOCIATED_WITH' | 'CREATED_BY';
+export type EntityType = 'PERSON' | 'ORGANIZATION' | 'LOCATION' | 'DEVICE' | 'ACCOUNT' | 'FILE' | 'URL' | 'IP_ADDRESS' | 'DOCUMENT' | 'EMAIL' | 'IMAGE' | 'EVENT';
+export type RelationshipType = 'COMMUNICATES_WITH' | 'WORKS_AT' | 'LOCATED_AT' | 'OWNS' | 'ACCESSED' | 'TRANSFERRED_TO' | 'ASSOCIATED_WITH' | 'CREATED_BY' | 'AUTHORED' | 'MENTIONED_IN' | 'SENT_TO' | 'REFERENCES' | 'OCCURRED_BEFORE' | 'OCCURRED_AFTER' | 'CONNECTED_TO' | 'INVOLVED_IN' | 'RECEIVED_FROM';
 export type AnomalyType = 'TIMING' | 'BEHAVIORAL' | 'NETWORK' | 'ACCESS_PATTERN' | 'DATA_EXFILTRATION' | 'IDENTITY';
 export type InsightType = 'CONNECTION' | 'PATTERN' | 'ANOMALY' | 'HYPOTHESIS' | 'LEAD';
 export type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type ConfidenceLevel = 'SPECULATIVE' | 'PROBABLE' | 'CONFIRMED';
-
-// ────────────────────────────────────────────────────────────
-// Core Case
-// ────────────────────────────────────────────────────────────
 
 export interface Case {
   id: string;
@@ -36,10 +27,6 @@ export interface Case {
   evidenceTrails: EvidenceTrail[];
 }
 
-// ────────────────────────────────────────────────────────────
-// Evidence
-// ────────────────────────────────────────────────────────────
-
 export interface Evidence {
   id: string;
   caseId: string;
@@ -59,10 +46,6 @@ export interface Evidence {
   metadata: Record<string, string | number | boolean>;
 }
 
-// ────────────────────────────────────────────────────────────
-// Entity
-// ────────────────────────────────────────────────────────────
-
 export interface Entity {
   id: string;
   caseId: string;
@@ -79,11 +62,16 @@ export interface Entity {
   isPrimary: boolean;         // key subject / person of interest
   metadata: Record<string, string | number | boolean>;
   position?: { x: number; y: number }; // Graph node position (Phase 2)
+  aiInsight?: AIHypothesis;  // Phase 3: per-entity AI hypothesis
 }
 
-// ────────────────────────────────────────────────────────────
-// Relationship
-// ────────────────────────────────────────────────────────────
+export interface AIHypothesis {
+  summary: string;            // 1-sentence core hypothesis
+  detail: string;             // 2-3 sentence elaboration
+  confidence: number;         // 0-100 — AI's confidence in the hypothesis
+  flags: string[];            // short tags e.g. ['MOTIVE', 'OPPORTUNITY']
+  generatedAt: string;        // ISO date (simulated)
+}
 
 export interface Relationship {
   id: string;
@@ -99,10 +87,6 @@ export interface Relationship {
   evidenceRefs: string[];
 }
 
-// ────────────────────────────────────────────────────────────
-// Timeline Event
-// ────────────────────────────────────────────────────────────
-
 export interface TimelineEvent {
   id: string;
   caseId: string;
@@ -115,10 +99,6 @@ export interface TimelineEvent {
   severity: Severity;
   aiGenerated: boolean;
 }
-
-// ────────────────────────────────────────────────────────────
-// Anomaly
-// ────────────────────────────────────────────────────────────
 
 export interface Anomaly {
   id: string;
@@ -136,10 +116,6 @@ export interface Anomaly {
   notes?: string;
 }
 
-// ────────────────────────────────────────────────────────────
-// AI Insight
-// ────────────────────────────────────────────────────────────
-
 export interface AIInsight {
   id: string;
   caseId: string;
@@ -155,10 +131,6 @@ export interface AIInsight {
   accepted?: boolean;         // User reviewed state
 }
 
-// ────────────────────────────────────────────────────────────
-// Evidence Trail
-// ────────────────────────────────────────────────────────────
-
 export interface EvidenceTrail {
   id: string;
   caseId: string;
@@ -170,10 +142,6 @@ export interface EvidenceTrail {
   significance: Severity;
   aiSummary?: string;
 }
-
-// ────────────────────────────────────────────────────────────
-// Utility Types for UI
-// ────────────────────────────────────────────────────────────
 
 export interface EvidenceBreakdown {
   type: EvidenceType;
@@ -200,10 +168,6 @@ export interface CaseSummary {
   entityBreakdown: EntityBreakdown[];
 }
 
-// ────────────────────────────────────────────────────────────
-// Props Shapes (for placeholder components — Phase 2+ will fill)
-// ────────────────────────────────────────────────────────────
-
 export interface GraphPlaceholderProps {
   caseId?: string;
   entities?: Entity[];
@@ -214,8 +178,10 @@ export interface GraphPlaceholderProps {
 export interface EntityInspectorProps {
   entity?: Entity;
   relatedEvidence?: Evidence[];
-  relatedEntities?: Entity[];
+  relatedEntities?: Entity[];   // Phase 3: connected entities for the clickable list
+  connectedEntityIds?: string[]; // IDs of directly connected entities
   onClose?: () => void;
+  onEntitySelect?: (entity: Entity) => void;  // Phase 3: cross-highlight
 }
 
 export interface TimelineStripProps {
@@ -223,4 +189,31 @@ export interface TimelineStripProps {
   selectedEventId?: string;
   onEventSelect?: (event: TimelineEvent) => void;
   timeRange?: { start: string; end: string };
+}
+
+export type NodeFilterType = 'ALL' | 'PERSON' | 'ORGANIZATION' | 'DOCUMENT' | 'EMAIL' | 'IMAGE' | 'LOCATION' | 'EVENT';
+
+export interface GraphNodeData {
+  entity: Entity;
+  isSelected: boolean;
+  isHighlighted: boolean;
+  isDimmed: boolean;
+  isExpanded: boolean;
+  isDiscovered: boolean;
+  onSelect: (id: string) => void;
+  onDoubleClick: (id: string) => void;
+  [key: string]: unknown;   // React Flow requires index signature
+}
+
+export interface GraphEdgeData {
+  relationship: Relationship;
+  isActive: boolean;        // animated particle when source/target selected
+  isDimmed: boolean;
+  [key: string]: unknown;
+}
+
+export interface LeadRecord {
+  nodeId: string;
+  discoveredAt: number;     // timestamp ms
+  label: string;
 }
