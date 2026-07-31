@@ -98,6 +98,7 @@ export interface TimelineEvent {
   type: 'EVENT' | 'MILESTONE' | 'ANOMALY' | 'COMMUNICATION' | 'ACCESS' | 'TRANSACTION';
   severity: Severity;
   aiGenerated: boolean;
+  primaryRefId?: string;      // Phase 4: entity or evidence ID in graph to select on click
 }
 
 export interface Anomaly {
@@ -114,6 +115,7 @@ export interface Anomaly {
   resolved: boolean;
   resolvedAt?: string;
   notes?: string;
+  conflictingEventIds?: string[]; // Phase 4: references to conflicting timeline events
 }
 
 export interface AIInsight {
@@ -186,8 +188,9 @@ export interface EntityInspectorProps {
 
 export interface TimelineStripProps {
   events?: TimelineEvent[];
-  selectedEventId?: string;
-  onEventSelect?: (event: TimelineEvent) => void;
+  selectedEntityId?: string | null;
+  onEntitySelect?: (entity: Entity | null) => void;
+  anomalies?: Anomaly[];
   timeRange?: { start: string; end: string };
 }
 

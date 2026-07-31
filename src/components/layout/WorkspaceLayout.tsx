@@ -7,7 +7,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import InvestigationGraph from '@/components/graph/InvestigationGraph';
 import EntityInspector from '@/components/workspace/EntityInspector';
 import TimelineStrip from '@/components/workspace/TimelineStrip';
-import { CASE_SUMMARY } from '@/data/mockCase';
+import { CASE_SUMMARY, MOCK_CASE } from '@/data/mockCase';
 import { getConnectedEntities } from '@/data/graphData';
 import type { Entity } from '@/types';
 
@@ -97,7 +97,12 @@ export default function WorkspaceLayout() {
           </div>
 
           {/* Bottom: Timeline Strip */}
-          <TimelineStrip />
+          <TimelineStrip
+            events={MOCK_CASE.timeline}
+            anomalies={MOCK_CASE.anomalies}
+            selectedEntityId={selectedEntity?.id ?? null}
+            onEntitySelect={handleEntitySelect}
+          />
         </div>
       </div>
     </motion.div>
