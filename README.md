@@ -40,7 +40,7 @@ Built incrementally in phases:
 - [x] Phase 1 — App shell & onboarding
 - [x] Phase 2 — Investigation graph
 - [x] Phase 3 — Entity inspector
-- [ ] Phase 4 — Timeline
+- [x] Phase 4 — Timeline
 - [ ] Phase 5 — Evidence view
 - [ ] Phase 6 — Trace feature
 - [ ] Phase 7 — AI analysis
