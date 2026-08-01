@@ -80,6 +80,36 @@ export default function TimelineStrip({
     return { minTime: min, maxTime: max, timeSpan: max - min };
   }, [events]);
 
+  // Auto-scroll timeline to center the selected event
+  useEffect(() => {
+    if (!selectedEntityId || events.length === 0 || !containerRef.current) return;
+
+    // Find associated event
+    const matchedEvent = events.find(e => 
+      e.primaryRefId === selectedEntityId || 
+      e.entityRefs.includes(selectedEntityId) || 
+      e.evidenceRefs.includes(selectedEntityId)
+    );
+
+    if (matchedEvent && timeSpan > 0) {
+      const evTime = new Date(matchedEvent.timestamp).getTime();
+      const pct = (evTime - minTime) / timeSpan;
+      const leftPct = 4 + pct * 92;
+
+      const scrollContainer = containerRef.current.parentElement;
+      if (scrollContainer) {
+        const contentWidth = containerRef.current.scrollWidth;
+        const targetX = (leftPct / 100) * contentWidth;
+        const containerViewportWidth = scrollContainer.clientWidth;
+
+        scrollContainer.scrollTo({
+          left: targetX - containerViewportWidth / 2,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [selectedEntityId, events, minTime, timeSpan]);
+
   // Format date display helper
   const formatDate = (isoStr: string) => {
     return new Date(isoStr).toLocaleDateString('en-GB', {

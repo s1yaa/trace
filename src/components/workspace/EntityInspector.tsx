@@ -434,14 +434,26 @@ const ACTIONS = [
   },
 ];
 
-function ActionButtons({ onAction }: { onAction: (toast: string) => void }) {
+function ActionButtons({
+  onAction,
+  onViewEvidence,
+}: {
+  onAction: (toast: string) => void;
+  onViewEvidence?: () => void;
+}) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
       {ACTIONS.map(({ id, icon: Icon, label, color, toast }) => (
         <button
           key={id}
           id={`inspector-${id}`}
-          onClick={() => onAction(toast)}
+          onClick={() => {
+            if (id === 'view-evidence' && onViewEvidence) {
+              onViewEvidence();
+            } else {
+              onAction(toast);
+            }
+          }}
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -649,6 +661,7 @@ export default function EntityInspector({
   relatedEntities = [],
   onClose,
   onEntitySelect,
+  onViewEvidence,
 }: EntityInspectorProps) {
   const config = entity ? TYPE_CONFIG[entity.type] : null;
   const Icon = config?.icon ?? User;
@@ -974,7 +987,10 @@ export default function EntityInspector({
               <div style={{ marginBottom: 6, paddingLeft: 2 }}>
                 <SectionLabel>Actions</SectionLabel>
               </div>
-              <ActionButtons onAction={showToast} />
+              <ActionButtons
+                onAction={showToast}
+                onViewEvidence={entity && onViewEvidence ? () => onViewEvidence(entity.id) : undefined}
+              />
             </div>
           </motion.div>
 

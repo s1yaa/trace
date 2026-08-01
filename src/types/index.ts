@@ -184,6 +184,7 @@ export interface EntityInspectorProps {
   connectedEntityIds?: string[]; // IDs of directly connected entities
   onClose?: () => void;
   onEntitySelect?: (entity: Entity) => void;  // Phase 3: cross-highlight
+  onViewEvidence?: (entityId: string) => void; // Phase 5: open Evidence list filtered by entity
 }
 
 export interface TimelineStripProps {

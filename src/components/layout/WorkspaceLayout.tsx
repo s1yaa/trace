@@ -8,24 +8,34 @@ import InvestigationGraph from '@/components/graph/InvestigationGraph';
 import EntityInspector from '@/components/workspace/EntityInspector';
 import TimelineStrip from '@/components/workspace/TimelineStrip';
 import { CASE_SUMMARY, MOCK_CASE } from '@/data/mockCase';
-import { getConnectedEntities } from '@/data/graphData';
+import { getConnectedEntities, getEntityById } from '@/data/graphData';
 import type { Entity } from '@/types';
+import EvidenceView from '@/components/workspace/EvidenceView';
 
 export default function WorkspaceLayout() {
   const [activeNav, setActiveNav] = useState('graph');
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
+  const [evidenceFilter, setEvidenceFilter] = useState<string | null>(null);
 
   // Ref for the graph to receive imperative "focus node" signals from the inspector
   const graphFocusRef = useRef<((id: string) => void) | null>(null);
 
+  // Called when changing navigation tabs
+  const handleNavChange = useCallback((navId: string) => {
+    setActiveNav(navId);
+    if (navId !== 'evidence') {
+      setEvidenceFilter(null);
+    }
+  }, []);
+
   // Called by both the graph (node click) and the inspector (connected entity click)
   const handleEntitySelect = useCallback((entity: Entity | null) => {
     setSelectedEntity(entity);
-    // If triggered from inspector, also focus the node in the graph
-    if (entity && graphFocusRef.current) {
+    // If triggered from inspector/timeline, also focus the node in the graph (if active)
+    if (entity && graphFocusRef.current && activeNav === 'graph') {
       graphFocusRef.current(entity.id);
     }
-  }, []);
+  }, [activeNav]);
 
   const handleInspectorClose = useCallback(() => {
     setSelectedEntity(null);
@@ -60,7 +70,7 @@ export default function WorkspaceLayout() {
           <Sidebar
             caseSummary={CASE_SUMMARY}
             activeNav={activeNav}
-            onNavChange={setActiveNav}
+            onNavChange={handleNavChange}
           />
         </motion.div>
 
@@ -70,13 +80,41 @@ export default function WorkspaceLayout() {
           {/* Center + Right panel row */}
           <div className="flex flex-1 overflow-hidden">
 
-            {/* Center: Investigation Graph */}
+            {/* Center: Swaps between Investigation Graph and Evidence View */}
             <div className="flex-1 overflow-hidden min-w-0" style={{ position: 'relative' }}>
-              <InvestigationGraph
-                onEntitySelect={setSelectedEntity}   // graph → shared state (no re-focus)
-                selectedEntityId={selectedEntity?.id ?? null}
-                onRegisterFocus={(fn) => { graphFocusRef.current = fn; }}
-              />
+              {activeNav === 'evidence' ? (
+                <EvidenceView
+                  filterEntityId={evidenceFilter}
+                  onClearFilter={() => setEvidenceFilter(null)}
+                  onSelectEntity={handleEntitySelect}
+                  onViewInGraph={(evidenceId) => {
+                    handleNavChange('graph');
+                    // Find node in graph to select & focus
+                    const ent = getEntityById(evidenceId);
+                    if (ent) {
+                      handleEntitySelect(ent);
+                      // Force graph focus on the next tick
+                      setTimeout(() => {
+                        if (graphFocusRef.current) {
+                          graphFocusRef.current(evidenceId);
+                        }
+                      }, 50);
+                    }
+                  }}
+                  onViewInTimeline={(evidence) => {
+                    const ent = getEntityById(evidence.id);
+                    if (ent) {
+                      handleEntitySelect(ent);
+                    }
+                  }}
+                />
+              ) : (
+                <InvestigationGraph
+                  onEntitySelect={setSelectedEntity}   // graph → shared state (no re-focus)
+                  selectedEntityId={selectedEntity?.id ?? null}
+                  onRegisterFocus={(fn) => { graphFocusRef.current = fn; }}
+                />
+              )}
             </div>
 
             {/* Right: Entity Inspector */}
@@ -92,6 +130,10 @@ export default function WorkspaceLayout() {
                 relatedEntities={connectedEntities}
                 onClose={handleInspectorClose}
                 onEntitySelect={handleEntitySelect}  // inspector → shared state + graph focus
+                onViewEvidence={(entityId) => {
+                  setEvidenceFilter(entityId);
+                  setActiveNav('evidence');
+                }}
               />
             </motion.div>
           </div>
