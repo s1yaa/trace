@@ -41,8 +41,8 @@ Built incrementally in phases:
 - [x] Phase 2 — Investigation graph
 - [x] Phase 3 — Entity inspector
 - [x] Phase 4 — Timeline
-- [ ] Phase 5 — Evidence view
-- [ ] Phase 6 — Trace feature
+- [x] Phase 5 — Evidence view
+- [x] Phase 6 — Trace feature
 - [ ] Phase 7 — AI analysis
 - [ ] Phase 8 — Anomaly center & multi-case support
 - [ ] Phase 9 — Case creator

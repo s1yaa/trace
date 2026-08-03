@@ -9,16 +9,81 @@ import EntityInspector from '@/components/workspace/EntityInspector';
 import TimelineStrip from '@/components/workspace/TimelineStrip';
 import { CASE_SUMMARY, MOCK_CASE } from '@/data/mockCase';
 import { getConnectedEntities, getEntityById } from '@/data/graphData';
-import type { Entity } from '@/types';
+import type { Entity, LeadRecord } from '@/types';
 import EvidenceView from '@/components/workspace/EvidenceView';
+import TraceOverlay from '../workspace/TraceOverlay';
 
 export default function WorkspaceLayout() {
   const [activeNav, setActiveNav] = useState('graph');
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
   const [evidenceFilter, setEvidenceFilter] = useState<string | null>(null);
 
+  // Lifted leads state
+  const [leads, setLeads] = useState<LeadRecord[]>([]);
+  const [discoveredIds, setDiscoveredIds] = useState<Set<string>>(new Set());
+  const [newLead, setNewLead] = useState(false);
+
+  // Tracing states
+  const [activeTracePath, setActiveTracePath] = useState<string[] | null>(null);
+  const [revealedPathIndex, setRevealedPathIndex] = useState<number>(-1);
+  const [isTracingSequence, setIsTracingSequence] = useState(false);
+  const [traceStartEntityId, setTraceStartEntityId] = useState<string | null>(null);
+
   // Ref for the graph to receive imperative "focus node" signals from the inspector
   const graphFocusRef = useRef<((id: string) => void) | null>(null);
+
+  // Discovers a lead, triggering a leads counter animation
+  const handleDiscoverLead = useCallback((id: string, label: string) => {
+    setDiscoveredIds((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      
+      setLeads((prevLeads) => [...prevLeads, { nodeId: id, discoveredAt: Date.now(), label }]);
+      setNewLead(true);
+      setTimeout(() => setNewLead(false), 600);
+      return next;
+    });
+  }, []);
+
+  // Begins tracing cinematic overlay
+  const handleTraceSequence = useCallback((entityId: string) => {
+    setTraceStartEntityId(entityId);
+    setIsTracingSequence(true);
+  }, []);
+
+  // Animates the discovered path node-by-node on the graph
+  const handleStartPathVisualization = useCallback((path: string[]) => {
+    setActiveTracePath(path);
+    setRevealedPathIndex(0);
+
+    const firstNode = getEntityById(path[0]);
+    if (firstNode) {
+      handleDiscoverLead(firstNode.id, firstNode.label);
+    }
+
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      currentIndex++;
+      if (currentIndex < path.length) {
+        setRevealedPathIndex(currentIndex);
+        const node = getEntityById(path[currentIndex]);
+        if (node) {
+          handleDiscoverLead(node.id, node.label);
+          if (graphFocusRef.current) {
+            graphFocusRef.current(node.id);
+          }
+        }
+      } else {
+        clearInterval(interval);
+      }
+    }, 1200);
+  }, [handleDiscoverLead]);
+
+  const handleResetTrace = useCallback(() => {
+    setActiveTracePath(null);
+    setRevealedPathIndex(-1);
+  }, []);
 
   // Called when changing navigation tabs
   const handleNavChange = useCallback((navId: string) => {
@@ -31,11 +96,14 @@ export default function WorkspaceLayout() {
   // Called by both the graph (node click) and the inspector (connected entity click)
   const handleEntitySelect = useCallback((entity: Entity | null) => {
     setSelectedEntity(entity);
+    if (entity) {
+      handleDiscoverLead(entity.id, entity.label);
+    }
     // If triggered from inspector/timeline, also focus the node in the graph (if active)
     if (entity && graphFocusRef.current && activeNav === 'graph') {
       graphFocusRef.current(entity.id);
     }
-  }, [activeNav]);
+  }, [activeNav, handleDiscoverLead]);
 
   const handleInspectorClose = useCallback(() => {
     setSelectedEntity(null);
@@ -107,12 +175,21 @@ export default function WorkspaceLayout() {
                       handleEntitySelect(ent);
                     }
                   }}
+                  onTraceSequence={handleTraceSequence}
                 />
               ) : (
                 <InvestigationGraph
                   onEntitySelect={setSelectedEntity}   // graph → shared state (no re-focus)
                   selectedEntityId={selectedEntity?.id ?? null}
                   onRegisterFocus={(fn) => { graphFocusRef.current = fn; }}
+                  leads={leads}
+                  newLead={newLead}
+                  discoveredIds={discoveredIds}
+                  onDiscoverLead={handleDiscoverLead}
+                  activeTracePath={activeTracePath}
+                  revealedPathIndex={revealedPathIndex}
+                  onTraceSequence={handleTraceSequence}
+                  onResetTrace={handleResetTrace}
                 />
               )}
             </div>
@@ -134,6 +211,7 @@ export default function WorkspaceLayout() {
                   setEvidenceFilter(entityId);
                   setActiveNav('evidence');
                 }}
+                onTraceSequence={handleTraceSequence}
               />
             </motion.div>
           </div>
@@ -147,6 +225,23 @@ export default function WorkspaceLayout() {
           />
         </div>
       </div>
+
+      {/* Cinematic Trace Sequence Overlay */}
+      {isTracingSequence && traceStartEntityId && (
+        <TraceOverlay
+          startEntityId={traceStartEntityId}
+          onClose={() => {
+            setIsTracingSequence(false);
+            setTraceStartEntityId(null);
+          }}
+          onVisualize={(pathInfo: { path: string[]; confidence: number; breakdown: string }) => {
+            setIsTracingSequence(false);
+            setTraceStartEntityId(null);
+            handleNavChange('graph'); // Return to graph
+            handleStartPathVisualization(pathInfo.path);
+          }}
+        />
+      )}
     </motion.div>
   );
 }

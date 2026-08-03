@@ -437,9 +437,11 @@ const ACTIONS = [
 function ActionButtons({
   onAction,
   onViewEvidence,
+  onTraceSequence,
 }: {
   onAction: (toast: string) => void;
   onViewEvidence?: () => void;
+  onTraceSequence?: () => void;
 }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
@@ -448,7 +450,9 @@ function ActionButtons({
           key={id}
           id={`inspector-${id}`}
           onClick={() => {
-            if (id === 'view-evidence' && onViewEvidence) {
+            if (id === 'trace-connections' && onTraceSequence) {
+              onTraceSequence();
+            } else if (id === 'view-evidence' && onViewEvidence) {
               onViewEvidence();
             } else {
               onAction(toast);
@@ -662,6 +666,7 @@ export default function EntityInspector({
   onClose,
   onEntitySelect,
   onViewEvidence,
+  onTraceSequence,
 }: EntityInspectorProps) {
   const config = entity ? TYPE_CONFIG[entity.type] : null;
   const Icon = config?.icon ?? User;
@@ -990,6 +995,7 @@ export default function EntityInspector({
               <ActionButtons
                 onAction={showToast}
                 onViewEvidence={entity && onViewEvidence ? () => onViewEvidence(entity.id) : undefined}
+                onTraceSequence={entity && onTraceSequence ? () => onTraceSequence(entity.id) : undefined}
               />
             </div>
           </motion.div>

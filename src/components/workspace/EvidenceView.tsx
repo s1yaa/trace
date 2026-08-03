@@ -31,6 +31,7 @@ interface EvidenceViewProps {
   onSelectEntity: (entity: Entity | null) => void;
   onViewInGraph: (evidenceId: string) => void;
   onViewInTimeline: (evidence: Evidence) => void;
+  onTraceSequence?: (startId: string) => void;
 }
 
 export default function EvidenceView({
@@ -39,6 +40,7 @@ export default function EvidenceView({
   onSelectEntity,
   onViewInGraph,
   onViewInTimeline,
+  onTraceSequence,
 }: EvidenceViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvidence, setSelectedEvidence] = useState<Evidence | null>(null);
@@ -514,9 +516,14 @@ export default function EvidenceView({
                 </button>
               </div>
 
-              {/* TRACE CONNECTIONS */}
               <button
-                onClick={showPhase6Toast}
+                onClick={() => {
+                  if (onTraceSequence && selectedEvidence) {
+                    onTraceSequence(selectedEvidence.id);
+                  } else {
+                    showPhase6Toast();
+                  }
+                }}
                 className="w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-sm border border-neutral-700 hover:border-neutral-500 text-secondary hover:text-primary text-[9px] font-mono uppercase tracking-wide cursor-pointer transition-colors"
               >
                 <GitBranch size={10} />

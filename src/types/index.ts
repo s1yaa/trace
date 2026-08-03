@@ -185,6 +185,7 @@ export interface EntityInspectorProps {
   onClose?: () => void;
   onEntitySelect?: (entity: Entity) => void;  // Phase 3: cross-highlight
   onViewEvidence?: (entityId: string) => void; // Phase 5: open Evidence list filtered by entity
+  onTraceSequence?: (entityId: string) => void; // Phase 6: run cinematic trace path
 }
 
 export interface TimelineStripProps {

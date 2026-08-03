@@ -52,11 +52,19 @@ function buildNodes(
   searchTerm: string,
   onSelect: (id: string) => void,
   onDoubleClick: (id: string) => void,
+  activeTracePath: string[] | null,
+  revealedPathIndex: number,
 ): Node<GraphNodeData>[] {
+  const isTracedNodeRevealed = (nodeId: string) => {
+    if (!activeTracePath) return false;
+    const idx = activeTracePath.indexOf(nodeId);
+    return idx !== -1 && idx <= revealedPathIndex;
+  };
+
   return entities.map((entity) => {
-    const isSelected = selectedId === entity.id;
-    const isHighlighted = highlightedIds.has(entity.id);
-    const isDimmed = dimmedIds.has(entity.id);
+    let isSelected = selectedId === entity.id;
+    let isHighlighted = highlightedIds.has(entity.id);
+    let isDimmed = dimmedIds.has(entity.id);
     const isExpanded = expandedIds.has(entity.id);
     const isDiscovered = discoveredIds.has(entity.id);
 
@@ -67,6 +75,22 @@ function buildNodes(
       entity.id.toLowerCase().includes(searchTerm.toLowerCase());
 
     const hidden = !matchesFilter || (!matchesSearch && searchTerm.length > 0);
+
+    // Override styling if a trace path is active
+    if (activeTracePath && activeTracePath.length > 0) {
+      const revealed = isTracedNodeRevealed(entity.id);
+      if (revealed) {
+        isHighlighted = true;
+        isDimmed = false;
+        if (activeTracePath[revealedPathIndex] === entity.id) {
+          isSelected = true;
+        }
+      } else {
+        isHighlighted = false;
+        isSelected = false;
+        isDimmed = true;
+      }
+    }
 
     return {
       id: entity.id,
@@ -93,12 +117,43 @@ function buildEdges(
   relationships: Relationship[],
   selectedId: string | null,
   dimmedIds: Set<string>,
+  activeTracePath: string[] | null,
+  revealedPathIndex: number,
 ): Edge<GraphEdgeData>[] {
+  const isTracedEdgeRevealed = (rel: Relationship) => {
+    if (!activeTracePath || activeTracePath.length < 2) return false;
+    for (let i = 0; i < activeTracePath.length - 1; i++) {
+      const source = activeTracePath[i];
+      const target = activeTracePath[i + 1];
+      if (
+        (rel.sourceEntityId === source && rel.targetEntityId === target) ||
+        (rel.targetEntityId === source && rel.sourceEntityId === target)
+      ) {
+        return i < revealedPathIndex; // Edge is revealed once both its nodes are illuminated
+      }
+    }
+    return false;
+  };
+
   return relationships.map((rel) => {
-    const isActive = selectedId !== null && (
-      rel.sourceEntityId === selectedId || rel.targetEntityId === selectedId
-    );
-    const isDimmed = selectedId !== null && !isActive;
+    let isActive = false;
+    let isDimmed = false;
+
+    if (activeTracePath && activeTracePath.length > 0) {
+      const isTrailRevealed = isTracedEdgeRevealed(rel);
+      if (isTrailRevealed) {
+        isActive = true;
+        isDimmed = false;
+      } else {
+        isActive = false;
+        isDimmed = true;
+      }
+    } else {
+      isActive = selectedId !== null && (
+        rel.sourceEntityId === selectedId || rel.targetEntityId === selectedId
+      );
+      isDimmed = selectedId !== null && !isActive;
+    }
 
     return {
       id: rel.id,
@@ -114,7 +169,7 @@ function buildEdges(
       data: {
         relationship: rel,
         isActive,
-        isDimmed: isDimmed || dimmedIds.has(rel.sourceEntityId) || dimmedIds.has(rel.targetEntityId),
+        isDimmed: isDimmed || (!isActive && (dimmedIds.has(rel.sourceEntityId) || dimmedIds.has(rel.targetEntityId))),
       } as GraphEdgeData,
     };
   });
@@ -319,7 +374,6 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
         }}
       >
         <span style={{ fontSize: 11, color: '#63B3ED', fontFamily: 'JetBrains Mono, monospace' }}>
-          {message}
         </span>
       </motion.div>
     </AnimatePresence>
@@ -330,17 +384,34 @@ interface InnerGraphProps {
   selectedId: string | null;
   onSelect: (entity: Entity | null) => void;
   onRegisterFocus?: (fn: (id: string) => void) => void;
+  leads: LeadRecord[];
+  newLead: boolean;
+  discoveredIds: Set<string>;
+  onDiscoverLead: (id: string, label: string) => void;
+  activeTracePath: string[] | null;
+  revealedPathIndex: number;
+  onTraceSequence?: (startId: string) => void;
+  onResetTrace?: () => void;
 }
 
-function InnerGraph({ selectedId, onSelect, onRegisterFocus }: InnerGraphProps) {
+function InnerGraph({
+  selectedId,
+  onSelect,
+  onRegisterFocus,
+  leads,
+  newLead,
+  discoveredIds,
+  onDiscoverLead,
+  activeTracePath,
+  revealedPathIndex,
+  onTraceSequence,
+  onResetTrace,
+}: InnerGraphProps) {
   const reactFlow = useReactFlow();
 
   const [filter, setFilter] = useState<NodeFilterType>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [discoveredIds, setDiscoveredIds] = useState<Set<string>>(new Set());
-  const [leads, setLeads] = useState<LeadRecord[]>([]);
-  const [newLead, setNewLead] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   // ── Derived state: which nodes are connected to selected ──
@@ -369,13 +440,8 @@ function InnerGraph({ selectedId, onSelect, onRegisterFocus }: InnerGraphProps) 
 
   // ── Discover lead helper ──────────────────────────────────
   const discoverLead = useCallback((id: string, label: string) => {
-    if (!discoveredIds.has(id)) {
-      setDiscoveredIds(prev => new Set([...prev, id]));
-      setLeads(prev => [...prev, { nodeId: id, discoveredAt: Date.now(), label }]);
-      setNewLead(true);
-      setTimeout(() => setNewLead(false), 600);
-    }
-  }, [discoveredIds]);
+    onDiscoverLead(id, label);
+  }, [onDiscoverLead]);
 
   // ── Imperative focus (called by inspector cross-highlight) ─
   const imperativeFocus = useCallback((id: string) => {
@@ -435,13 +501,13 @@ function InnerGraph({ selectedId, onSelect, onRegisterFocus }: InnerGraphProps) 
     buildNodes(
       GRAPH_ENTITIES, selectedId, highlightedIds, dimmedIds,
       expandedIds, discoveredIds, filter, searchTerm,
-      handleSelect, handleDoubleClick,
+      handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex,
     ),
-    [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick]);
+    [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex]);
 
   const initialEdges = useMemo(() =>
-    buildEdges(GRAPH_RELATIONSHIPS, selectedId, dimmedIds),
-    [selectedId, dimmedIds]);
+    buildEdges(GRAPH_RELATIONSHIPS, selectedId, dimmedIds, activeTracePath, revealedPathIndex),
+    [selectedId, dimmedIds, activeTracePath, revealedPathIndex]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -451,13 +517,13 @@ function InnerGraph({ selectedId, onSelect, onRegisterFocus }: InnerGraphProps) 
     setNodes(buildNodes(
       GRAPH_ENTITIES, selectedId, highlightedIds, dimmedIds,
       expandedIds, discoveredIds, filter, searchTerm,
-      handleSelect, handleDoubleClick,
+      handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex,
     ));
-  }, [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick, setNodes]);
+  }, [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex, setNodes]);
 
   useEffect(() => {
-    setEdges(buildEdges(GRAPH_RELATIONSHIPS, selectedId, dimmedIds));
-  }, [selectedId, dimmedIds, setEdges]);
+    setEdges(buildEdges(GRAPH_RELATIONSHIPS, selectedId, dimmedIds, activeTracePath, revealedPathIndex));
+  }, [selectedId, dimmedIds, activeTracePath, revealedPathIndex, setEdges]);
 
   // ── Graph controls ────────────────────────────────────────
   const handleZoomIn = useCallback(() => reactFlow.zoomIn({ duration: 300 }), [reactFlow]);
@@ -479,8 +545,12 @@ function InnerGraph({ selectedId, onSelect, onRegisterFocus }: InnerGraphProps) 
   }, [reactFlow, selectedId]);
 
   const handleTracePath = useCallback(() => {
-    setToast('Trace Path — Coming in Phase 4');
-  }, []);
+    if (selectedId && onTraceSequence) {
+      onTraceSequence(selectedId);
+    } else {
+      setToast('Select a node in the graph to run trace diagnostics');
+    }
+  }, [selectedId, onTraceSequence]);
 
   // ── Search: auto-focus and center on match ────────────────
   useEffect(() => {
@@ -523,55 +593,115 @@ function InnerGraph({ selectedId, onSelect, onRegisterFocus }: InnerGraphProps) 
             alignItems: 'center',
             gap: 6,
             background: 'rgba(8,12,16,0.9)',
-            border: '1px solid rgba(99,179,237,0.18)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: 4,
             padding: '5px 10px',
+            flex: 1,
+            maxWidth: 240,
             backdropFilter: 'blur(12px)',
-            width: 200,
-            flexShrink: 0,
           }}
         >
-          <Search size={11} color="var(--text-muted)" />
+          <Search size={11} color="var(--text-ghost)" />
           <input
-            id="graph-search"
             type="text"
-            placeholder="Search nodes..."
+            placeholder="Search entities..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               background: 'transparent',
               border: 'none',
-              outline: 'none',
               color: 'var(--text-primary)',
-              fontSize: 11,
-              fontFamily: 'Inter, system-ui',
+              fontSize: 10,
+              fontFamily: 'JetBrains Mono, monospace',
+              outline: 'none',
               width: '100%',
             }}
           />
           {searchTerm && (
-            <button onClick={() => setSearchTerm('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--text-muted)', display: 'flex' }}>
+            <button
+              onClick={() => setSearchTerm('')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-ghost)', display: 'flex', padding: 2 }}
+            >
               <X size={10} />
             </button>
           )}
         </div>
 
         {/* Filter chips */}
-        <div
-          style={{
-            background: 'rgba(8,12,16,0.9)',
-            border: '1px solid rgba(99,179,237,0.12)',
-            borderRadius: 4,
-            padding: '4px 6px',
-            backdropFilter: 'blur(12px)',
-            overflow: 'hidden',
-          }}
-        >
-          <FilterChips active={filter} onChange={setFilter} />
-        </div>
+        <FilterChips active={filter} onChange={setFilter} />
       </div>
 
       {/* ── Leads counter ──────────────────────────────── */}
       <LeadsCounter leads={leads} newLead={newLead} />
+
+      {/* ── Active Trail Pinned Overlay ────────────────── */}
+      {activeTracePath && onResetTrace && (
+        <div
+          id="pinned-trail-card"
+          style={{
+            position: 'absolute',
+            bottom: 74,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 25,
+            background: 'rgba(8,12,16,0.95)',
+            border: '1px solid rgba(99,179,237,0.35)',
+            boxShadow: '0 4px 20px rgba(99,179,237,0.2)',
+            borderRadius: 4,
+            padding: '8px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#63B3ED',
+                boxShadow: '0 0 8px #63B3ED',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: 8,
+                fontWeight: 600,
+                color: '#63B3ED',
+                letterSpacing: '0.08em',
+              }}
+            >
+              ACTIVE SYSTEM CORRELATION TRAIL PINNED
+            </span>
+          </div>
+          <button
+            onClick={onResetTrace}
+            style={{
+              background: 'rgba(99,179,237,0.1)',
+              border: '1px solid rgba(99,179,237,0.3)',
+              borderRadius: 2,
+              padding: '4px 9px',
+              color: '#FFF',
+              fontSize: 8,
+              fontFamily: 'JetBrains Mono, monospace',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,179,237,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,179,237,0.1)';
+            }}
+          >
+            RESET TRAIL
+          </button>
+        </div>
+      )}
 
       {/* ── React Flow canvas ──────────────────────────── */}
       <ReactFlow
@@ -625,12 +755,28 @@ interface InvestigationGraphProps {
   onEntitySelect: (entity: Entity | null) => void;
   selectedEntityId: string | null;
   onRegisterFocus?: (fn: (id: string) => void) => void;
+  leads: LeadRecord[];
+  newLead: boolean;
+  discoveredIds: Set<string>;
+  onDiscoverLead: (id: string, label: string) => void;
+  activeTracePath: string[] | null;
+  revealedPathIndex: number;
+  onTraceSequence?: (startId: string) => void;
+  onResetTrace?: () => void;
 }
 
 export default function InvestigationGraph({
   onEntitySelect,
   selectedEntityId,
   onRegisterFocus,
+  leads,
+  newLead,
+  discoveredIds,
+  onDiscoverLead,
+  activeTracePath,
+  revealedPathIndex,
+  onTraceSequence,
+  onResetTrace,
 }: InvestigationGraphProps) {
   return (
     <motion.div
@@ -644,6 +790,14 @@ export default function InvestigationGraph({
           selectedId={selectedEntityId}
           onSelect={onEntitySelect}
           onRegisterFocus={onRegisterFocus}
+          leads={leads}
+          newLead={newLead}
+          discoveredIds={discoveredIds}
+          onDiscoverLead={onDiscoverLead}
+          activeTracePath={activeTracePath}
+          revealedPathIndex={revealedPathIndex}
+          onTraceSequence={onTraceSequence}
+          onResetTrace={onResetTrace}
         />
       </ReactFlowProvider>
     </motion.div>
