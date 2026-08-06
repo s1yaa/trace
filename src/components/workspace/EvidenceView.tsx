@@ -136,12 +136,6 @@ export default function EvidenceView({
     setSelectedEvidence(ev);
   };
 
-  // Toast for Phase 6 placeholder actions
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showPhase6Toast = () => {
-    setToastMessage('Path tracing simulation available in Phase 6');
-    setTimeout(() => setToastMessage(null), 3000);
-  };
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-void relative">
@@ -413,6 +407,13 @@ export default function EvidenceView({
                 </div>
               </div>
 
+              {/* Investigator observation intro */}
+              {selectedEvidence.noirIntro && (
+                <div className="pl-3.5 pr-1 py-1.5 border-l border-accent/40 text-[10px] text-accent italic font-serif leading-relaxed">
+                  "{selectedEvidence.noirIntro}"
+                </div>
+              )}
+
               {/* Metadata Records */}
               <div className="flex flex-col gap-2">
                 <span className="font-mono text-[7.5px] text-ghost tracking-wider uppercase pl-1">System Metadata</span>
@@ -520,8 +521,6 @@ export default function EvidenceView({
                 onClick={() => {
                   if (onTraceSequence && selectedEvidence) {
                     onTraceSequence(selectedEvidence.id);
-                  } else {
-                    showPhase6Toast();
                   }
                 }}
                 className="w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-sm border border-neutral-700 hover:border-neutral-500 text-secondary hover:text-primary text-[9px] font-mono uppercase tracking-wide cursor-pointer transition-colors"
@@ -530,21 +529,6 @@ export default function EvidenceView({
                 Trace Connections
               </button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Temporary Toast Overlay */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-neutral-900/90 border border-subtle text-primary font-mono text-[9px] tracking-wider rounded shadow-xl backdrop-filter backdrop-blur-md z-50 flex items-center gap-2"
-          >
-            <Clock size={10} className="text-accent" />
-            <span>{toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>

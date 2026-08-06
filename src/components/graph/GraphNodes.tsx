@@ -142,7 +142,7 @@ interface NodeShellProps {
 }
 
 function NodeShell({ data, config, children }: NodeShellProps) {
-  const { entity, isSelected, isHighlighted, isDimmed, onSelect, onDoubleClick } = data;
+  const { entity, isSelected, isHighlighted, isDimmed, isIdlePulse, onSelect, onDoubleClick } = data;
   const Icon = config.icon;
 
   // Border color varies by state
@@ -201,6 +201,21 @@ function NodeShell({ data, config, children }: NodeShellProps) {
           animationDelay: `${Math.random() * 2}s`,
         }}
       />
+
+      {/* Idle hint ring — only when player has been idle and this is the suggested node */}
+      {isIdlePulse && !isSelected && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: -14,
+            borderRadius: 10,
+            border: `1px solid ${config.color}`,
+            opacity: 0.55,
+            pointerEvents: 'none',
+            animation: 'node-pulse 1.8s ease-in-out infinite',
+          }}
+        />
+      )}
 
       {/* Main card */}
       <div

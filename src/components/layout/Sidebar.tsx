@@ -40,11 +40,7 @@ interface SidebarProps {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'graph', label: 'Investigation Graph', icon: Network, route: '/graph' },
-  { id: 'trails', label: 'Evidence Trails', icon: GitBranch, route: '/trails', badge: 2 },
-  { id: 'timeline', label: 'Timeline', icon: Clock, route: '/timeline' },
-  { id: 'evidence', label: 'Evidence', icon: FileText, route: '/evidence', badge: 24 },
-  { id: 'ai', label: 'AI Analysis', icon: Cpu, route: '/ai', badge: 1 },
-  { id: 'anomalies', label: 'Anomalies', icon: AlertTriangle, route: '/anomalies', badge: 3 },
+  { id: 'evidence', label: 'Evidence Files', icon: FileText, route: '/evidence' },
 ];
 
 const EVIDENCE_ICONS: Record<EvidenceType, React.ComponentType<{ size?: number; color?: string }>> = {
@@ -276,7 +272,7 @@ export default function Sidebar({ caseSummary, activeNav, onNavChange }: Sidebar
                       >
                         {item.label}
                       </span>
-                      {item.badge !== undefined && (
+                      {item.id === 'evidence' && (
                         <span
                           className="font-mono flex-shrink-0"
                           style={{
@@ -288,7 +284,7 @@ export default function Sidebar({ caseSummary, activeNav, onNavChange }: Sidebar
                             color: isActive ? '#63B3ED' : 'var(--text-muted)',
                           }}
                         >
-                          {item.badge}
+                          {caseSummary.evidenceCount}
                         </span>
                       )}
                     </motion.div>

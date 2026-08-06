@@ -1,20 +1,26 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Bell, Settings, User, Cpu, Wifi } from 'lucide-react';
+import { Cpu, Wifi } from 'lucide-react';
 import PulsingDot from '@/components/ui/PulsingDot';
 import AnimatedCounter from '@/components/ui/AnimatedCounter';
 import type { CaseSummary } from '@/types';
 
 interface CommandBarProps {
   caseSummary: CaseSummary;
+  availableLeads?: number;
+  days?: number;
+  onOpenGuidance?: () => void;
 }
 
-export default function CommandBar({ caseSummary }: CommandBarProps) {
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+function getDayNarrative(day: number): string {
+  if (day <= 2) return `DAY ${day} — THE TRAIL IS FRESH`;
+  if (day <= 4) return `DAY ${day} — THE COFFEE IS STALE`;
+  if (day <= 6) return `DAY ${day} — THE PATH IS COLD`;
+  return `DAY ${day} — RUNNING OUT OF TIME`;
+}
 
+export default function CommandBar({ caseSummary, availableLeads = 0, days = 1, onOpenGuidance }: CommandBarProps) {
   return (
     <motion.header
       className="flex-shrink-0 relative z-40 flex items-center justify-between px-5 gap-4"
@@ -107,7 +113,7 @@ export default function CommandBar({ caseSummary }: CommandBarProps) {
               className="font-mono"
               style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.05em' }}
             >
-              {caseSummary.name}
+              {getDayNarrative(days)}
             </span>
           </div>
         </div>
@@ -134,104 +140,75 @@ export default function CommandBar({ caseSummary }: CommandBarProps) {
               </span>
             </div>
           ))}
+
+          {/* Divider before LEADS */}
+          <div style={{ width: 1, height: 24, background: 'var(--border-subtle)' }} />
+
+          {/* LEADS counter — spendable resource */}
+          <div className="flex flex-col items-center" style={{ gap: 1 }}>
+            <span
+              className="font-mono font-semibold"
+              style={{ fontSize: 16, color: availableLeads >= 3 ? '#68D391' : '#ECC94B', lineHeight: 1 }}
+            >
+              <AnimatedCounter value={availableLeads} duration={600} />
+            </span>
+            <span
+              className="font-mono uppercase"
+              style={{ fontSize: 8, color: 'var(--text-muted)', letterSpacing: '0.12em' }}
+            >
+              LEADS
+            </span>
+          </div>
         </div>
       </div>
 
       {/* ── Right: Tools + Status ─────────────────────────── */}
-      <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: 320 }}>
-
-        {/* Search */}
-        <div
-          className="relative flex items-center gap-2 rounded-sm px-3"
+      <div className="flex items-center gap-3 flex-shrink-0" style={{ minWidth: 150 }}>
+        {/* ── How to Play "?" button ── */}
+        <button
+          id="how-to-play-btn"
+          onClick={onOpenGuidance}
+          title="How to Play — Field Guide"
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 32,
             height: 32,
-            background: searchFocused ? 'rgba(99,179,237,0.07)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${searchFocused ? 'rgba(99,179,237,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 4,
+            cursor: 'pointer',
+            color: 'var(--text-muted)',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: 0,
             transition: 'all 0.2s ease',
-            width: 200,
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,179,237,0.08)';
+            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,179,237,0.25)';
+            (e.currentTarget as HTMLButtonElement).style.color = '#63B3ED';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
+            (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.06)';
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';
           }}
         >
-          <Search size={12} color="var(--text-muted)" />
-          <input
-            id="global-search"
-            type="text"
-            placeholder="Search evidence, entities..."
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              color: 'var(--text-primary)',
-              fontSize: 11,
-              width: '100%',
-              fontFamily: 'inherit',
-            }}
-          />
-        </div>
+          ?
+        </button>
 
-        {/* Icon buttons */}
-        {[
-          { id: 'notification-btn', Icon: Bell, badge: 3 },
-          { id: 'settings-btn', Icon: Settings },
-          { id: 'profile-btn', Icon: User },
-        ].map(({ id, Icon, badge }) => (
-          <button
-            key={id}
-            id={id}
-            className="relative flex items-center justify-center rounded-sm cursor-pointer"
-            style={{
-              width: 32,
-              height: 32,
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              color: 'var(--text-muted)',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,179,237,0.08)';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(99,179,237,0.25)';
-              (e.currentTarget as HTMLButtonElement).style.color = '#63B3ED';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.06)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';
-            }}
-          >
-            <Icon size={14} />
-            {badge !== undefined && (
-              <span
-                className="absolute -top-1 -right-1 flex items-center justify-center rounded-full font-mono"
-                style={{
-                  width: 14,
-                  height: 14,
-                  fontSize: 8,
-                  background: '#FC8181',
-                  color: '#fff',
-                  fontWeight: 700,
-                }}
-              >
-                {badge}
-              </span>
-            )}
-          </button>
-        ))}
-
-        {/* Divider */}
-        <div style={{ width: 1, height: 24, background: 'var(--border-subtle)' }} />
-
-        {/* AI + System status */}
+        {/* System status */}
         <div className="flex flex-col gap-1" style={{ fontSize: 9 }}>
           <div className="flex items-center gap-1.5">
             <Cpu size={9} color="var(--text-muted)" />
             <span className="font-mono" style={{ color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
-              AI ANALYSIS:
+              STATUS:
             </span>
             <span className="font-mono font-semibold" style={{ color: '#48BB78' }}>
-              READY
+              ACTIVE
             </span>
             <span
               className="w-1.5 h-1.5 rounded-full pulsing-dot"

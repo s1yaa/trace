@@ -60,10 +60,10 @@ export default function TraceOverlay({
   }, []);
 
   const stages = [
-    { label: 'IDENTIFYING ENTITIES', progress: progresses[0] },
-    { label: 'FOLLOWING CONNECTIONS', progress: progresses[1] },
-    { label: 'ANALYZING TIMESTAMPS', progress: progresses[2] },
-    { label: 'SEARCHING RELATED EVIDENCE', progress: progresses[3] },
+    { label: "Rounding up the usual suspects...", progress: progresses[0] },
+    { label: "Connecting the threads...", progress: progresses[1] },
+    { label: "Watching the clock spin...", progress: progresses[2] },
+    { label: "Digging through the paper trail...", progress: progresses[3] },
   ];
 
   // SVG Radial meter math
@@ -220,6 +220,39 @@ export default function TraceOverlay({
                   <span className="font-mono text-[9px] text-accent font-medium leading-relaxed uppercase">
                     {pathInfo.breakdown}
                   </span>
+                </div>
+              </div>
+
+              {/* Forensic Timeline Patterns & Observations */}
+              <div className="w-full flex flex-col gap-1.5 text-left mt-1">
+                <span className="font-mono text-[7.5px] text-ghost uppercase tracking-widest pl-0.5">
+                  Correlated Timeline Patterns & Anomalies
+                </span>
+                <div className="flex flex-col gap-1.5 max-h-[140px] overflow-y-auto pr-1">
+                  <div className="p-2 bg-void/25 border border-muted/10 rounded flex flex-col gap-0.5">
+                    <span className="text-[8.5px] font-bold text-accent font-mono uppercase">
+                      1. Credential Spike Chronology
+                    </span>
+                    <span className="text-[8px] text-secondary leading-normal">
+                      VPN credentials (svc_labautomation) executed 340 auth requests within a 20-minute window on Nov 1.
+                    </span>
+                  </div>
+                  <div className="p-2 bg-void/25 border border-muted/10 rounded flex flex-col gap-0.5">
+                    <span className="text-[8.5px] font-bold text-accent font-mono uppercase">
+                      2. Compilation Time Discrepancy
+                    </span>
+                    <span className="text-[8px] text-secondary leading-normal">
+                      Exfiltration script compiled 51 minutes AFTER logged deployment on Lab Server 4B.
+                    </span>
+                  </div>
+                  <div className="p-2 bg-void/25 border border-muted/10 rounded flex flex-col gap-0.5">
+                    <span className="text-[8.5px] font-bold text-accent font-mono uppercase">
+                      3. Patent Draft Sequence
+                    </span>
+                    <span className="text-[8px] text-secondary leading-normal">
+                      Nexara patent filing US2025/0183441 draft (Oct 25) predates ΩXR-7 exfiltration (Nov 1) by 7 days.
+                    </span>
+                  </div>
                 </div>
               </div>
 

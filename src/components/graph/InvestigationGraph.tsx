@@ -54,6 +54,7 @@ function buildNodes(
   onDoubleClick: (id: string) => void,
   activeTracePath: string[] | null,
   revealedPathIndex: number,
+  idlePulseNodeId: string | null,
 ): Node<GraphNodeData>[] {
   const isTracedNodeRevealed = (nodeId: string) => {
     if (!activeTracePath) return false;
@@ -104,6 +105,7 @@ function buildNodes(
         isDimmed: isDimmed && !isSelected && !isHighlighted,
         isExpanded,
         isDiscovered,
+        isIdlePulse: idlePulseNodeId === entity.id,
         onSelect,
         onDoubleClick,
       } as GraphNodeData,
@@ -225,7 +227,7 @@ function LeadsCounter({ leads, newLead }: { leads: LeadRecord[]; newLead: boolea
 
 function GraphControls({
   onZoomIn, onZoomOut, onReset, onFocus, onTracePath,
-  hasSelection,
+  hasSelection, availableLeads,
 }: {
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -233,7 +235,10 @@ function GraphControls({
   onFocus: () => void;
   onTracePath: () => void;
   hasSelection: boolean;
+  availableLeads: number;
 }) {
+  const TRACE_COST = 3;
+  const canTrace = availableLeads >= TRACE_COST;
   return (
     <div
       style={{
@@ -253,17 +258,28 @@ function GraphControls({
       }}
     >
       {[
-        { id: 'zoom-in', icon: ZoomIn, label: 'ZOOM +', onClick: onZoomIn },
-        { id: 'zoom-out', icon: ZoomOut, label: 'ZOOM −', onClick: onZoomOut },
-        { id: 'reset-view', icon: RotateCcw, label: 'RESET', onClick: onReset },
+        { id: 'zoom-in', icon: ZoomIn, label: 'ZOOM +', onClick: onZoomIn, disabled: false },
+        { id: 'zoom-out', icon: ZoomOut, label: 'ZOOM −', onClick: onZoomOut, disabled: false },
+        { id: 'reset-view', icon: RotateCcw, label: 'RESET', onClick: onReset, disabled: false },
         { id: 'focus-node', icon: Crosshair, label: 'FOCUS', onClick: onFocus, disabled: !hasSelection },
-        { id: 'trace-path', icon: GitBranch, label: 'TRACE PATH', onClick: onTracePath, accent: true },
-      ].map(({ id, icon: Icon, label, onClick, disabled, accent }) => (
+        {
+          id: 'trace-path',
+          icon: GitBranch,
+          label: canTrace ? `TRACE PATH (${TRACE_COST} leads)` : 'NEED MORE LEADS',
+          title: canTrace
+            ? `Follow the connections — costs ${TRACE_COST} leads`
+            : `You need ${TRACE_COST} leads to run a Trace. Click unexplored nodes in the graph to earn them.`,
+          onClick: canTrace ? onTracePath : undefined,
+          disabled: !canTrace,
+          accent: true,
+        },
+      ].map(({ id, icon: Icon, label, onClick, disabled, accent, title }) => (
         <button
           key={id}
           id={id}
           onClick={onClick}
           disabled={disabled}
+          title={title}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -392,6 +408,7 @@ interface InnerGraphProps {
   revealedPathIndex: number;
   onTraceSequence?: (startId: string) => void;
   onResetTrace?: () => void;
+  availableLeads: number;
 }
 
 function InnerGraph({
@@ -406,6 +423,7 @@ function InnerGraph({
   revealedPathIndex,
   onTraceSequence,
   onResetTrace,
+  availableLeads,
 }: InnerGraphProps) {
   const reactFlow = useReactFlow();
 
@@ -413,6 +431,30 @@ function InnerGraph({
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+
+  // ── Idle hint: after 8s with nothing selected, softly pulse one unvisited node ──
+  const [idlePulseNodeId, setIdlePulseNodeId] = useState<string | null>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resetIdleTimer = useCallback(() => {
+    setIdlePulseNodeId(null);
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      // Pick a random undiscovered entity to suggest
+      const undiscovered = GRAPH_ENTITIES.filter(e => !discoveredIds.has(e.id));
+      if (undiscovered.length > 0) {
+        const pick = undiscovered[Math.floor(Math.random() * undiscovered.length)];
+        setIdlePulseNodeId(pick.id);
+      }
+    }, 8000);
+  }, [discoveredIds]);
+
+  // Start idle timer on mount and reset whenever selectedId changes
+  useEffect(() => {
+    resetIdleTimer();
+    return () => { if (idleTimerRef.current) clearTimeout(idleTimerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
 
   // ── Derived state: which nodes are connected to selected ──
   const connectedIds = useMemo(() => {
@@ -478,7 +520,8 @@ function InnerGraph({
     if (!entity) return;
     discoverLead(id, entity.label);
     onSelect(entity);
-  }, [discoverLead, onSelect]);
+    resetIdleTimer();
+  }, [discoverLead, onSelect, resetIdleTimer]);
 
   const handleDoubleClick = useCallback((id: string) => {
     const entity = GRAPH_ENTITIES.find(e => e.id === id);
@@ -501,9 +544,9 @@ function InnerGraph({
     buildNodes(
       GRAPH_ENTITIES, selectedId, highlightedIds, dimmedIds,
       expandedIds, discoveredIds, filter, searchTerm,
-      handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex,
+      handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex, idlePulseNodeId,
     ),
-    [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex]);
+    [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex, idlePulseNodeId]);
 
   const initialEdges = useMemo(() =>
     buildEdges(GRAPH_RELATIONSHIPS, selectedId, dimmedIds, activeTracePath, revealedPathIndex),
@@ -517,9 +560,9 @@ function InnerGraph({
     setNodes(buildNodes(
       GRAPH_ENTITIES, selectedId, highlightedIds, dimmedIds,
       expandedIds, discoveredIds, filter, searchTerm,
-      handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex,
+      handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex, idlePulseNodeId,
     ));
-  }, [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex, setNodes]);
+  }, [selectedId, highlightedIds, dimmedIds, expandedIds, discoveredIds, filter, searchTerm, handleSelect, handleDoubleClick, activeTracePath, revealedPathIndex, idlePulseNodeId, setNodes]);
 
   useEffect(() => {
     setEdges(buildEdges(GRAPH_RELATIONSHIPS, selectedId, dimmedIds, activeTracePath, revealedPathIndex));
@@ -743,6 +786,7 @@ function InnerGraph({
         onFocus={handleFocus}
         onTracePath={handleTracePath}
         hasSelection={!!selectedId}
+        availableLeads={availableLeads}
       />
 
       {/* ── Toast ─────────────────────────────────────── */}
@@ -763,6 +807,7 @@ interface InvestigationGraphProps {
   revealedPathIndex: number;
   onTraceSequence?: (startId: string) => void;
   onResetTrace?: () => void;
+  availableLeads: number;
 }
 
 export default function InvestigationGraph({
@@ -777,6 +822,7 @@ export default function InvestigationGraph({
   revealedPathIndex,
   onTraceSequence,
   onResetTrace,
+  availableLeads,
 }: InvestigationGraphProps) {
   return (
     <motion.div
@@ -798,6 +844,7 @@ export default function InvestigationGraph({
           revealedPathIndex={revealedPathIndex}
           onTraceSequence={onTraceSequence}
           onResetTrace={onResetTrace}
+          availableLeads={availableLeads}
         />
       </ReactFlowProvider>
     </motion.div>

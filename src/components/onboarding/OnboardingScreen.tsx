@@ -347,7 +347,7 @@ export default function OnboardingScreen({ onEnter }: OnboardingScreenProps) {
               animate={{ opacity: 1 }}
               transition={{ delay: 2.1, duration: 0.8 }}
             >
-              Case CASE-047 loaded &nbsp;·&nbsp; Secure session active &nbsp;·&nbsp; AI Analysis: Ready
+              Case CASE-047 loaded &nbsp;·&nbsp; Secure session active &nbsp;·&nbsp; Decryption Suite: Ready
             </motion.p>
           </div>
 

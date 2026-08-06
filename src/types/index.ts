@@ -23,8 +23,12 @@ export interface Case {
   relationships: Relationship[];
   timeline: TimelineEvent[];
   anomalies: Anomaly[];
-  aiInsights: AIInsight[];
+  caseNotes: CaseNote[];
   evidenceTrails: EvidenceTrail[];
+  briefing: string;
+  // Phase 10 resolution content — consumed by CaseSolvedOverlay and accusation mechanic.
+  caseSolvedLines?: string[];     // Shown sequentially when player correctly accuses ENT-001.
+  caseUnresolvedText?: string;    // Shown when player accuses the wrong person.
 }
 
 export interface Evidence {
@@ -33,6 +37,7 @@ export interface Evidence {
   type: EvidenceType;
   title: string;
   description: string;
+  noirIntro?: string;
   source: string;
   collectedAt: string;
   hash?: string;              // SHA-256 for integrity verification
@@ -62,15 +67,15 @@ export interface Entity {
   isPrimary: boolean;         // key subject / person of interest
   metadata: Record<string, string | number | boolean>;
   position?: { x: number; y: number }; // Graph node position (Phase 2)
-  aiInsight?: AIHypothesis;  // Phase 3: per-entity AI hypothesis
+  investigatorNote?: InvestigatorNote;  // Phase 3: per-entity note
 }
 
-export interface AIHypothesis {
-  summary: string;            // 1-sentence core hypothesis
+export interface InvestigatorNote {
+  summary: string;            // 1-sentence core note
   detail: string;             // 2-3 sentence elaboration
-  confidence: number;         // 0-100 — AI's confidence in the hypothesis
+  confidence: number;         // 0-100 — confidence in the note
   flags: string[];            // short tags e.g. ['MOTIVE', 'OPPORTUNITY']
-  generatedAt: string;        // ISO date (simulated)
+  recordedAt: string;         // ISO date (simulated)
 }
 
 export interface Relationship {
@@ -118,16 +123,16 @@ export interface Anomaly {
   conflictingEventIds?: string[]; // Phase 4: references to conflicting timeline events
 }
 
-export interface AIInsight {
+export interface CaseNote {
   id: string;
   caseId: string;
-  type: InsightType;
+  type: string;
   title: string;
   summary: string;
   detail: string;
   confidence: number;         // 0–100
-  generatedAt: string;
-  modelVersion: string;
+  recordedAt: string;
+  author: string;
   entityRefs: string[];
   evidenceRefs: string[];
   accepted?: boolean;         // User reviewed state
@@ -186,6 +191,10 @@ export interface EntityInspectorProps {
   onEntitySelect?: (entity: Entity) => void;  // Phase 3: cross-highlight
   onViewEvidence?: (entityId: string) => void; // Phase 5: open Evidence list filtered by entity
   onTraceSequence?: (entityId: string) => void; // Phase 6: run cinematic trace path
+  // Phase 9: game mechanics
+  availableLeads?: number;
+  cooldownActions?: number;
+  onAccuseSuspect?: (entityId: string) => void;
 }
 
 export interface TimelineStripProps {
@@ -205,6 +214,7 @@ export interface GraphNodeData {
   isDimmed: boolean;
   isExpanded: boolean;
   isDiscovered: boolean;
+  isIdlePulse?: boolean;      // subtle extra glow when player has been idle
   onSelect: (id: string) => void;
   onDoubleClick: (id: string) => void;
   [key: string]: unknown;   // React Flow requires index signature
