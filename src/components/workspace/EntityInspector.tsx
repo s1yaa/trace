@@ -10,11 +10,11 @@ import {
   User, Building2, FileText, Mail, Image as ImageIcon,
   MapPin, Zap, Monitor, FolderOpen, Shield,
   X, ChevronRight, GitBranch, Clock, FileSearch,
-  MessageSquare, Sparkles, AlertTriangle, Target,
+  MessageSquare, Pin, AlertTriangle, Target,
 } from 'lucide-react';
-import type { EntityInspectorProps, EntityType, AIHypothesis } from '@/types';
+import type { EntityInspectorProps, EntityType, InvestigatorNote } from '@/types';
 import type { Entity } from '@/types';
-import { AI_HYPOTHESES } from '@/data/graphData';
+import { INVESTIGATOR_NOTES } from '@/data/graphData';
 
 const TYPE_CONFIG: Record<EntityType, {
   icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
@@ -88,6 +88,9 @@ function ConfidenceScanner({
   const confidenceColor = value >= 80 ? '#63B3ED' : value >= 55 ? '#ECC94B' : '#FC8181';
   const circumference = 2 * Math.PI * 20; // r=20
 
+  const gutLabel = value >= 80 ? 'SOLID LEAD' : value >= 60 ? 'GUT FEELING' : value >= 40 ? 'UNCERTAIN' : 'UNCONFIRMED';
+  const gutColor = value >= 80 ? '#63B3ED' : value >= 60 ? '#ECC94B' : value >= 40 ? '#F6AD55' : '#FC8181';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -136,14 +139,23 @@ function ConfidenceScanner({
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <SectionLabel>CONFIDENCE</SectionLabel>
+          <SectionLabel>CASE CORRELATION</SectionLabel>
           <div style={{
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 9,
-            color: value >= 80 ? '#68D391' : value >= 55 ? '#ECC94B' : '#FC8181',
+            fontSize: 10,
+            fontWeight: 700,
+            color: gutColor,
             letterSpacing: '0.08em',
           }}>
-            {value >= 80 ? 'HIGH' : value >= 55 ? 'MODERATE' : 'LOW'}
+            {gutLabel}
+          </div>
+          <div style={{
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: 7.5,
+            color: 'var(--text-ghost)',
+            letterSpacing: '0.06em',
+          }}>
+            PROBABILITY: {displayed}%
           </div>
           {isNew && (
             <motion.div
@@ -193,10 +205,10 @@ function ConfidenceScanner({
   );
 }
 
-function AIHypothesisBlock({ hypothesis }: { hypothesis: AIHypothesis }) {
+function InvestigatorNoteBlock({ note }: { note: InvestigatorNote }) {
   const [expanded, setExpanded] = useState(false);
-  const aiConfColor = hypothesis.confidence >= 80 ? '#68D391'
-    : hypothesis.confidence >= 60 ? '#ECC94B' : '#FC8181';
+  const noteConfColor = note.confidence >= 80 ? '#68D391'
+    : note.confidence >= 60 ? '#ECC94B' : '#FC8181';
 
   return (
     <motion.div
@@ -205,48 +217,48 @@ function AIHypothesisBlock({ hypothesis }: { hypothesis: AIHypothesis }) {
       transition={{ duration: 0.3, delay: 0.2 }}
       style={{
         borderRadius: 4,
-        border: '1px solid rgba(152, 100, 224, 0.2)',
-        background: 'rgba(152, 100, 224, 0.04)',
+        border: '1px solid rgba(236, 201, 75, 0.15)',
+        background: 'rgba(236, 201, 75, 0.03)',
         overflow: 'hidden',
       }}
     >
-
       <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: 6,
         padding: '7px 10px',
-        borderBottom: expanded ? '1px solid rgba(152, 100, 224, 0.12)' : 'none',
+        borderBottom: expanded ? '1px solid rgba(236, 201, 75, 0.1)' : 'none',
         cursor: 'pointer',
+        userSelect: 'none',
       }}
         onClick={() => setExpanded(v => !v)}
       >
-        <Sparkles size={10} color="#9F7AEA" strokeWidth={1.5} />
+        <Pin size={10} color="#ECC94B" strokeWidth={1.5} />
         <span style={{
           fontFamily: 'JetBrains Mono, monospace',
           fontSize: 8,
-          color: '#9F7AEA',
+          color: '#ECC94B',
           letterSpacing: '0.14em',
           flex: 1,
         }}>
-          AI HYPOTHESIS
+          INVESTIGATOR'S NOTE
         </span>
 
         <span style={{
           fontFamily: 'JetBrains Mono, monospace',
           fontSize: 7,
-          color: aiConfColor,
-          background: `${aiConfColor}18`,
-          border: `1px solid ${aiConfColor}40`,
+          color: noteConfColor,
+          background: `${noteConfColor}18`,
+          border: `1px solid ${noteConfColor}40`,
           borderRadius: 2,
           padding: '1px 5px',
           letterSpacing: '0.08em',
         }}>
-          {hypothesis.confidence}%
+          {note.confidence}%
         </span>
         <ChevronRight
           size={10}
-          color="rgba(152,100,224,0.5)"
+          color="rgba(236,201,75,0.4)"
           style={{ transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s ease' }}
         />
       </div>
@@ -256,12 +268,12 @@ function AIHypothesisBlock({ hypothesis }: { hypothesis: AIHypothesis }) {
         alignItems: 'center',
         gap: 5,
         padding: '4px 10px',
-        background: 'rgba(236,201,75,0.04)',
-        borderBottom: '1px solid rgba(236,201,75,0.08)',
+        background: 'rgba(236,201,75,0.03)',
+        borderBottom: '1px solid rgba(236,201,75,0.06)',
       }}>
         <AlertTriangle size={8} color="#ECC94B" strokeWidth={1.5} />
         <span style={{ fontSize: 8, color: 'rgba(236,201,75,0.6)', fontFamily: 'Inter, system-ui', letterSpacing: '0.02em' }}>
-          Not verified — working hypothesis only
+          Preliminary finding — subject to revision
         </span>
       </div>
 
@@ -272,18 +284,18 @@ function AIHypothesisBlock({ hypothesis }: { hypothesis: AIHypothesis }) {
           lineHeight: 1.6,
           fontStyle: 'italic',
         }}>
-          "{hypothesis.summary}"
+          "{note.summary}"
         </p>
       </div>
 
       <div style={{ padding: '0 10px 8px', display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-        {hypothesis.flags.map(flag => (
+        {note.flags.map(flag => (
           <span key={flag} style={{
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 7,
-            color: '#9F7AEA',
-            background: 'rgba(159,122,234,0.08)',
-            border: '1px solid rgba(159,122,234,0.18)',
+            color: '#ECC94B',
+            background: 'rgba(236,201,75,0.06)',
+            border: '1px solid rgba(236,201,75,0.15)',
             borderRadius: 2,
             padding: '1px 5px',
             letterSpacing: '0.06em',
@@ -304,14 +316,14 @@ function AIHypothesisBlock({ hypothesis }: { hypothesis: AIHypothesis }) {
           >
             <div style={{
               padding: '8px 10px 10px',
-              borderTop: '1px solid rgba(152,100,224,0.1)',
+              borderTop: '1px solid rgba(236, 201, 75, 0.08)',
             }}>
               <p style={{
                 fontSize: 9.5,
                 color: 'var(--text-secondary)',
                 lineHeight: 1.7,
               }}>
-                {hypothesis.detail}
+                {note.detail}
               </p>
               <div style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
                 <span style={{
@@ -320,7 +332,7 @@ function AIHypothesisBlock({ hypothesis }: { hypothesis: AIHypothesis }) {
                   color: 'var(--text-ghost)',
                   letterSpacing: '0.08em',
                 }}>
-                  generated {new Date(hypothesis.generatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                  recorded {new Date(note.recordedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </span>
               </div>
             </div>
@@ -331,77 +343,6 @@ function AIHypothesisBlock({ hypothesis }: { hypothesis: AIHypothesis }) {
   );
 }
 
-interface PhaseToast {
-  id: string;
-  message: string;
-}
-
-function PhaseToastStack({ toasts, onRemove }: { toasts: PhaseToast[]; onRemove: (id: string) => void }) {
-  return (
-    <div style={{
-      position: 'absolute',
-      bottom: 60,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      zIndex: 200,
-      display: 'flex',
-      flexDirection: 'column-reverse',
-      gap: 6,
-      pointerEvents: 'none',
-      width: 220,
-    }}>
-      <AnimatePresence>
-        {toasts.map(toast => (
-          <motion.div
-            key={toast.id}
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.95 }}
-            transition={{ duration: 0.22 }}
-            style={{
-              background: 'rgba(13,17,23,0.97)',
-              border: '1px solid rgba(99,179,237,0.25)',
-              borderRadius: 5,
-              padding: '8px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              backdropFilter: 'blur(16px)',
-            }}
-          >
-            <Clock size={10} color="#63B3ED" />
-            <span style={{
-              fontSize: 10,
-              color: 'var(--text-secondary)',
-              fontFamily: 'Inter, system-ui',
-              lineHeight: 1.4,
-            }}>
-              {toast.message}
-            </span>
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function usePhaseToast() {
-  const [toasts, setToasts] = useState<PhaseToast[]>([]);
-
-  const showToast = useCallback((message: string) => {
-    const id = String(Date.now());
-    setToasts(prev => [...prev, { id, message }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3200);
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
-
-  return { toasts, showToast, removeToast };
-}
 
 const ACTIONS = [
   {
@@ -409,79 +350,194 @@ const ACTIONS = [
     icon: GitBranch,
     label: 'TRACE CONNECTIONS',
     color: '#63B3ED',
-    toast: 'Path tracing available in Phase 4',
-  },
-  {
-    id: 'view-timeline',
-    icon: Clock,
-    label: 'VIEW TIMELINE',
-    color: '#ECC94B',
-    toast: 'Timeline deep-dive available in Phase 4',
   },
   {
     id: 'view-evidence',
     icon: FileSearch,
     label: 'VIEW EVIDENCE',
     color: '#68D391',
-    toast: 'Evidence panel available in Phase 4',
-  },
-  {
-    id: 'ask-ai',
-    icon: MessageSquare,
-    label: 'ASK AI',
-    color: '#9F7AEA',
-    toast: 'Live AI analysis available in Phase 5',
   },
 ];
 
-function ActionButtons({ onAction }: { onAction: (toast: string) => void }) {
+function ActionButtons({
+  onViewEvidence,
+  onTraceSequence,
+  availableLeads,
+  cooldownActions,
+  onAccuseSuspect,
+  entityId,
+  entityType,
+}: {
+  onViewEvidence?: () => void;
+  onTraceSequence?: () => void;
+  availableLeads: number;
+  cooldownActions: number;
+  onAccuseSuspect?: (id: string) => void;
+  entityId?: string;
+  entityType?: string;
+}) {
+  const TRACE_COST = 3;
+  const canTrace = availableLeads >= TRACE_COST;
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
-      {ACTIONS.map(({ id, icon: Icon, label, color, toast }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {/* Standard action grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+      {ACTIONS.map(({ id, icon: Icon, label, color }) => {
+        const isTrace = id === 'trace-connections';
+        const traceDisabled = isTrace && !canTrace;
+        const traceLabel = isTrace
+          ? canTrace
+            ? `TRACE — costs ${TRACE_COST} leads`
+            : 'NOT ENOUGH LEADS'
+          : label;
+        const effectiveColor = traceDisabled ? 'rgba(100,116,139,0.45)' : color;
+        return (
         <button
           key={id}
           id={`inspector-${id}`}
-          onClick={() => onAction(toast)}
+          disabled={traceDisabled}
+          onClick={() => {
+            if (id === 'trace-connections' && onTraceSequence && canTrace) {
+              onTraceSequence();
+            } else if (id === 'view-evidence' && onViewEvidence) {
+              onViewEvidence();
+            }
+          }}
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 4,
             padding: '8px 6px',
-            background: `${color}07`,
-            border: `1px solid ${color}20`,
+            background: traceDisabled ? 'rgba(100,116,139,0.04)' : `${color}07`,
+            border: `1px solid ${traceDisabled ? 'rgba(100,116,139,0.15)' : color + '20'}`,
             borderRadius: 4,
-            cursor: 'pointer',
+            cursor: traceDisabled ? 'not-allowed' : 'pointer',
             transition: 'all 0.18s ease',
+            opacity: traceDisabled ? 0.6 : 1,
           }}
           onMouseEnter={e => {
+            if (traceDisabled) return;
             const el = e.currentTarget;
             el.style.background = `${color}14`;
             el.style.borderColor = `${color}40`;
           }}
           onMouseLeave={e => {
+            if (traceDisabled) return;
             const el = e.currentTarget;
             el.style.background = `${color}07`;
             el.style.borderColor = `${color}20`;
           }}
         >
-          <Icon size={13} color={color} strokeWidth={1.5} />
+          <Icon size={13} color={effectiveColor} strokeWidth={1.5} />
           <span style={{
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 7,
-            color: color,
+            color: effectiveColor,
             letterSpacing: '0.08em',
             textAlign: 'center',
             lineHeight: 1.3,
             opacity: 0.85,
           }}>
-            {label}
+            {traceLabel}
           </span>
         </button>
-      ))}
+        );
+      })}
+      </div>
+
+      {/* Actionable hint when Trace is locked */}
+      {!canTrace && (
+        <div style={{
+          padding: '7px 10px',
+          background: 'rgba(100,116,139,0.05)',
+          border: '1px solid rgba(100,116,139,0.12)',
+          borderRadius: 4,
+          marginTop: -2,
+        }}>
+          <p style={{
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: 8.5,
+            color: 'rgba(148,163,184,0.7)',
+            lineHeight: 1.6,
+            margin: 0,
+            letterSpacing: '0.04em',
+          }}>
+            You need {TRACE_COST} leads to run a Trace. Click unexplored nodes in the graph, or review new evidence — every fresh connection adds to your count.
+          </p>
+        </div>
+      )}
+
+      {/* ARREST WARRANT — only for PERSON entities */}
+      {entityType === 'PERSON' && (
+        <div style={{ marginTop: 2 }}>
+          {/* Cooldown only gates the Arrest Warrant — Trace, graph, and evidence remain fully open. */}
+          <button
+            id="inspector-arrest-warrant"
+            disabled={cooldownActions > 0}
+            onClick={() => {
+              if (cooldownActions <= 0 && entityId && onAccuseSuspect) {
+                onAccuseSuspect(entityId);
+              }
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 7,
+              padding: '9px 8px',
+              background: cooldownActions > 0 ? 'rgba(100,116,139,0.04)' : 'rgba(252,129,129,0.06)',
+              border: `1px solid ${cooldownActions > 0 ? 'rgba(100,116,139,0.15)' : 'rgba(252,129,129,0.25)'}`,
+              borderRadius: 4,
+              cursor: cooldownActions > 0 ? 'not-allowed' : 'pointer',
+              transition: 'all 0.18s ease',
+              opacity: cooldownActions > 0 ? 0.55 : 1,
+            }}
+            onMouseEnter={e => {
+              if (cooldownActions > 0) return;
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.background = 'rgba(252,129,129,0.12)';
+              el.style.borderColor = 'rgba(252,129,129,0.45)';
+            }}
+            onMouseLeave={e => {
+              if (cooldownActions > 0) return;
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.background = 'rgba(252,129,129,0.06)';
+              el.style.borderColor = 'rgba(252,129,129,0.25)';
+            }}
+          >
+            <span style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: 7.5,
+              color: cooldownActions > 0 ? 'rgba(100,116,139,0.6)' : '#FC8181',
+              letterSpacing: '0.1em',
+            }}>
+              {cooldownActions > 0
+                ? `WARRANT FILED — WAIT ${cooldownActions} MORE ACTIONS`
+                : 'SUBMIT ARREST WARRANT'}
+
+            </span>
+          </button>
+          {cooldownActions > 0 && (
+            <p style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: 8,
+              color: 'rgba(148,163,184,0.55)',
+              margin: '6px 0 0',
+              lineHeight: 1.55,
+              letterSpacing: '0.04em',
+            }}>
+              The last warrant came back empty. Keep digging — investigate {cooldownActions} more connection{cooldownActions !== 1 ? 's' : ''} before you file again.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function ConnectedEntityRow({
   entity,
@@ -649,6 +705,11 @@ export default function EntityInspector({
   relatedEntities = [],
   onClose,
   onEntitySelect,
+  onViewEvidence,
+  onTraceSequence,
+  availableLeads = 0,
+  cooldownActions = 0,
+  onAccuseSuspect,
 }: EntityInspectorProps) {
   const config = entity ? TYPE_CONFIG[entity.type] : null;
   const Icon = config?.icon ?? User;
@@ -663,12 +724,10 @@ export default function EntityInspector({
     }
   }, [entity]);
 
-  // Toast system
-  const { toasts, showToast, removeToast } = usePhaseToast();
 
-  // AI hypothesis for this entity
-  const hypothesis: AIHypothesis | null = entity
-    ? (AI_HYPOTHESES[entity.id] ?? null)
+  // Investigator note for this entity
+  const investigatorNote: InvestigatorNote | null = entity
+    ? (INVESTIGATOR_NOTES[entity.id] ?? null)
     : null;
 
   return (
@@ -717,7 +776,7 @@ export default function EntityInspector({
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
           }}>
-            Entity Inspector
+            Case Notes
           </span>
         </div>
         {entity && onClose && (
@@ -964,17 +1023,37 @@ export default function EntityInspector({
               </div>
             )}
 
-            {hypothesis && (
+            {investigatorNote && (
               <div style={{ margin: '10px 10px 0' }}>
-                <AIHypothesisBlock hypothesis={hypothesis} />
+                <InvestigatorNoteBlock note={investigatorNote} />
               </div>
             )}
 
             <div style={{ margin: '10px 10px 14px' }}>
-              <div style={{ marginBottom: 6, paddingLeft: 2 }}>
+              <div style={{ marginBottom: 6, paddingLeft: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <SectionLabel>Actions</SectionLabel>
+                <span style={{
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: 7,
+                  color: availableLeads >= 3 ? '#68D391' : 'rgba(100,116,139,0.7)',
+                  letterSpacing: '0.08em',
+                  padding: '2px 5px',
+                  background: availableLeads >= 3 ? 'rgba(104,211,145,0.08)' : 'rgba(100,116,139,0.06)',
+                  border: `1px solid ${availableLeads >= 3 ? 'rgba(104,211,145,0.2)' : 'rgba(100,116,139,0.15)'}`,
+                  borderRadius: 3,
+                }}>
+                  {availableLeads} LEADS
+                </span>
               </div>
-              <ActionButtons onAction={showToast} />
+              <ActionButtons
+                onViewEvidence={entity && onViewEvidence ? () => onViewEvidence(entity.id) : undefined}
+                onTraceSequence={entity && onTraceSequence ? () => onTraceSequence(entity.id) : undefined}
+                availableLeads={availableLeads}
+                cooldownActions={cooldownActions}
+                onAccuseSuspect={onAccuseSuspect}
+                entityId={entity?.id}
+                entityType={entity?.type}
+              />
             </div>
           </motion.div>
 
@@ -1001,8 +1080,6 @@ export default function EntityInspector({
           {entity ? `${entity.id} — CASE-047` : 'TRACE v3.0 — Phase 3'}
         </span>
       </div>
-
-      <PhaseToastStack toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

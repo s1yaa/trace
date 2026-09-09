@@ -1,52 +1,44 @@
 # TRACE
 
-TRACE is an AI-powered evidence correlation and investigation platform. It lets you explore fictional cases made up of scattered evidence — people, documents, emails, locations, and events — and trace the hidden connections between them.
+TRACE is an immersive, noir-themed digital investigation game. Step into the shoes of an investigator, comb through logs, documents, emails, and financial records, map the connections on an interactive graph, and spend your hard-earned leads to trace hidden paths to the truth.
 
-**"Follow the evidence. Uncover the connections."**
+**"FOLLOW THE EVIDENCE. UNCOVER THE CONNECTIONS."**
+
+---
 
 ## Features
 
-- **Investigation Graph** — interactive node-based graph of entities and relationships (drag, zoom, filter, search)
-- **Entity Inspector** — detailed view of any selected entity, with confidence scores and AI-generated hypotheses
-- **Timeline** — chronological view of case events, with anomaly detection for contradictions
-- **Evidence View** — browse documents, emails, and images, each broken into extracted entities
-- **Trace** — the signature feature: select a lead and watch the app trace a chain of connections across the graph
-- **AI Analysis** — case summaries, pattern detection, and a simple Q&A interface
-- **Anomaly Center** — a dedicated view of timeline, identity, and relationship inconsistencies
-- **Case Creator** — build new investigation cases without hand-writing data files
+- **Investigation Graph** — Interactive, node-based graph visualization of all entities (people, devices, organizations, locations) and their relationships. Filter by type, search, zoom, and select nodes to trace connections.
+- **Case Notes** — Inspect any entity to see detailed logs, aliases, risk scores, and investigator notes. Includes actions to view related evidence files or submit an arrest warrant.
+- **Evidence Files** — Access the raw file archive (emails, network logs, ICANN domain WHOIS details, university backup tapes, keycard logs). Review details and run target traces from here.
+- **Trace** — Spend 3 discoverable leads to automatically search and visually reveal the shortest paths of connection between key evidence and suspects.
+- **Timeline Strip** — A chronological strip at the bottom of the workspace outlining case timeline events. Select events to highlight them in the graph, and click anomaly badges to investigate timeline and behavior contradictions.
+- **Arrest Warrant & Accusation Mechanic** — Accuse a suspect when you are confident. Be careful: a wrong arrest costs leads, adds a cooldown penalty, and advances the clock by a day. A correct accusation solves the case, revealing the full typewriter monologue of the resolution.
+- **Field Guide** — A lightweight, contextual guided-start overlay in noir partner voice. Shows 3-4 dismissible callouts pointing you to key panels, replayable at any time via the `?` icon button in the header.
+- **Subtle Idle Hints** — If you get stuck, a soft, pulse animation will draw your eye to undiscovered nodes on the graph after 8 seconds of inactivity.
+
+---
 
 ## Tech Stack
 
-- Next.js + TypeScript
-- Tailwind CSS
-- Framer Motion
-- React Flow (graph visualization)
+- **Framework**: Next.js (App Router, Client Components)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS & Custom CSS Variables (cinematic dark void theme)
+- **Graphing**: React Flow
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+
+---
 
 ## Getting Started
+
+Install dependencies and start the local development server:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. 
 
-No API keys required — the app runs entirely on structured mock case data.
-
-## Project Status
-
-Built incrementally in phases:
-
-- [x] Phase 1 — App shell & onboarding
-- [x] Phase 2 — Investigation graph
-- [x] Phase 3 — Entity inspector
-- [ ] Phase 4 — Timeline
-- [ ] Phase 5 — Evidence view
-- [ ] Phase 6 — Trace feature
-- [ ] Phase 7 — AI analysis
-- [ ] Phase 8 — Anomaly center & multi-case support
-- [ ] Phase 9 — Case creator
-
-## Data Model
-
-Cases, evidence, entities, relationships, timeline events, and anomalies are all defined as typed objects in `/data`, making it easy to add new investigation cases.
+*No database or API keys are required. The game runs entirely client-side using structured case data.*
